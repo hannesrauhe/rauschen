@@ -1,0 +1,27 @@
+message PEncryptedContainer {
+  optional int32 version = 1;
+  optional string group  = 2;
+  optional int32 parts   = 3;
+  optional int32 part    = 4;
+  optional bytes pubkey = 5;
+  optional bytes container = 6; //encrypted PSignedContainer
+}
+
+message PSignedContainer {
+  optional PInnerContainer inner_cont = 1;
+  optional string signature  = 2;
+}
+
+message PInnerContainer {
+  optional string type     = 1;
+  optional string message  = 2;
+  optional string receiver = 3;
+  optional int32 timestamp = 4;
+}
+
+/* nested types */
+//_send:
+message PSendCommand {
+  optional string receiver = 1;
+  optional PInnerContainer cont_to_send = 2;
+}

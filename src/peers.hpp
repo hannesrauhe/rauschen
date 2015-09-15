@@ -1,0 +1,44 @@
+#pragma once
+
+#include <asio.hpp>
+#include <mutex>
+#include <unordered_map>
+#include <algorithm>
+
+class Peers {
+public:
+  using ip_t = asio::ip::address_v6;
+  using ips_t = std::set<ip_t>;
+
+  bool add(asio::ip::udp IP, PubKey key) {
+    std::lock_guard<std::mutex> lock(peer_lock_);
+    return true;
+  }
+
+  bool empty() {
+    std::lock_guard<std::mutex> lock(peer_lock_);
+    return keyToIp_.empty();
+  }
+
+  ips_t getIpByPubKey(const std::string& pub_key) const {
+    std::lock_guard<std::mutex> lock(peer_lock_);
+    auto ip = keyToIp_.find(pub_key);
+    if(ip!=keyToIp_.end()) {
+      return ip->second;
+    }
+    throw std::runtime_error("Peer unknown");
+  }
+
+  ips_t getAllIPs() const {
+    std::lock_guard<std::mutex> lock(peer_lock_);
+    ips_t return_set;
+    for(const auto& ips : keyToIp_) {
+      return_set.insert(ips.second.begin(), ips.second.end());
+    }
+    return return_set;
+  }
+
+protected:
+  mutable std::mutex peer_lock_;
+  std::unordered_map<std::string, ips_t > keyToIp_;
+};
