@@ -20,7 +20,7 @@ void ping_echo(const std::string& host)
   Crypto::gcryptInit();
   asio::io_service io_service;
 
-  udp::socket s(io_service, udp::endpoint(udp::v6(), 0));
+  udp::socket s(io_service, udp::endpoint(udp::v6(), REMOTE_PORT));
 
   udp::resolver resolver(io_service);
   udp::endpoint endpoint = *resolver.resolve({udp::v6(), host, "2442"});
