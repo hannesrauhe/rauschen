@@ -4,12 +4,52 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include <cstdlib>
+#include <cstring>
 #include <asio.hpp>
+#include "crypto.hpp"
+
+using asio::ip::udp;
+
+const static uint16_t REMOTE_PORT = 2442;
+const static uint16_t MESSAGE_FORMAT_VERSION = 1;
+enum { max_length = 8192 };
+
+void ping_echo(const std::string& host)
+{
+  Crypto::gcryptInit();
+  asio::io_service io_service;
+
+  udp::socket s(io_service, udp::endpoint(udp::v6(), 0));
+
+  udp::resolver resolver(io_service);
+  udp::endpoint endpoint = *resolver.resolve({udp::v6(), host, "2442"});
+
+  Crypto crypto("test.key2");
+  PEncryptedContainer enc_cont;
+  enc_cont.set_version( MESSAGE_FORMAT_VERSION );
+  enc_cont.set_pubkey(crypto.getPubKey());
+  s.send_to(asio::buffer(enc_cont.SerializeAsString()), endpoint);
+  std::cout<<"Send ping to "<< endpoint.address().to_string() <<std::endl;
+
+  char reply[max_length];
+  udp::endpoint sender_endpoint;
+  size_t reply_length = s.receive_from(
+      asio::buffer(reply, max_length), sender_endpoint);
+
+  PEncryptedContainer rec_enc_cont;
+  rec_enc_cont.ParseFromArray(reply, reply_length);
+  std::string fingerprint = Crypto::getFingerprint(rec_enc_cont.pubkey());
+  std::cout<<"Answer from "<<fingerprint<<" ("<<sender_endpoint.address().to_string()<<")"<<std::endl;
+
+}
 
 int main(int argc, char* argv[])
 {
-  try
-  {
+    if( argc == 2) {
+      ping_echo(argv[1]);
+      return 0;
+    }
     if (argc < 3)
     {
       std::cerr << "Usage: sender <receiver> <message> [<type> [<relay_address>] [<port>]]" << std::endl;
@@ -46,11 +86,6 @@ int main(int argc, char* argv[])
           std::cout<<container.DebugString()<<std::endl;
     });
     io_context.run();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Exception: " << e.what() << "\n";
-  }
 
   return 0;
 }

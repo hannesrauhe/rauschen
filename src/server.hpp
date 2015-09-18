@@ -19,11 +19,10 @@ class Server
 {
 public:
   const static uint16_t REMOTE_PORT = 2442;
-  const static uint16_t LOCAL_PORT = 2443;
-  const static uint32_t MAX_MSG_LEN = 1024;
+  const static uint32_t MAX_MSG_LEN = 32768;
   const static int MESSAGE_FORMAT_VERSION = 1;
-  const char* MULTICAST_ADDR = "ff32::8000:4213";
-  const char* KEY_FILE = "test.key";
+  const static char* MULTICAST_ADDR;
+  const static char* KEY_FILE;
 
   static Server& getInstance() {
     static Server singleton_;
@@ -64,53 +63,72 @@ public:
   }
 
   void run() {
-    std::thread maintenance([&, this]() {
-      if(peers_.empty()) {
-        Logger::debug("Broadcast");
-        this->sendMessageToIP(
-            this->createEncryptedContainer(),
-            this->multicast_address_
-            );
-      }
-      std::this_thread::sleep_for(std::chrono::seconds(60));
-    });
+//    std::thread maintenance([&, this]() {
+//      while(true) {
+//        if(peers_.empty()) {
+//          Logger::debug("Broadcast");
+//          this->sendMessageToIP(
+//              this->createEncryptedContainer(),
+//              this->multicast_address_
+//              );
+//        }
+//        std::this_thread::sleep_for(std::chrono::seconds(60));
+//      }
+//    });
     io_service_.run();
   }
 
   void startReceive()
   {
-    socket_.async_receive_from(
-        asio::buffer(recv_buffer_), remote_endpoint_,
-        std::bind(&Server::handleReceiveFrom, this,
-          std::placeholders::_1,
-          std::placeholders::_2));
+    socket_.async_receive_from( asio::buffer( recv_buffer_ ), remote_endpoint_,
+        [this](const asio::error_code& error,
+            size_t bytes_recvd)
+        {
+          if (error)
+          {
+            Logger::info(error.message());
+          }
+          else
+          {
+            if(remote_endpoint_.address().is_loopback())
+            {
+              PInnerContainer container;
+              container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
+              startReceive();
+              executeCommand(container);
+              return;
+            }
+            else
+            {
+              auto sender = remote_endpoint_.address().to_v6();
+              PEncryptedContainer container;
+              container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
+              startReceive();
+              handleReceivedMessage(sender, container);
+              return;
+            }
+          }
+        } );
   }
 
-  void handleReceiveFrom(const asio::error_code& error,
-      size_t bytes_recvd)
-  {
-    if (error)
-    {
-      Logger::info(error.message());
-    } else {
-      if(remote_endpoint_.address().is_loopback()) {
-        PInnerContainer container;
-        container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
-        executeCommand(container);
-      } else {
-        PEncryptedContainer container;
-        container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
-        if(crypto_.getPubKey() == container.pubkey()) {
-          std::cout<<"Received actual message from myself"<<std::endl;
-          return;
-        }
-        Logger::debug("Received Message from "+Crypto::getFingerprint(container.pubkey())+" - "+remote_endpoint_.address().to_string());
-      }
+  void handleReceivedMessage(Peers::ip_t sender, PEncryptedContainer container) {
+    if(!container.has_pubkey()) {
+      Logger::debug("Received invalid message from "+sender.to_string());
+      return;
     }
-    startReceive();
+    if(crypto_.getPubKey() == container.pubkey())
+    {
+      std::cout<<"Received actual message from myself"<<std::endl;
+      return;
+    }
+    Logger::debug("Received Message from "+Crypto::getFingerprint(container.pubkey())+" - "+sender.to_string());
+    if(!container.has_container()) { //just a ping
+      sendMessageToIP(createEncryptedContainer(container.pubkey()), sender);
+    }
+
   }
 
-  PEncryptedContainer createEncryptedContainer( const PInnerContainer& inner_cont = PInnerContainer(), const std::string& receiver = "" )
+  PEncryptedContainer createEncryptedContainer( const std::string& receiver = "", const PInnerContainer& inner_cont = PInnerContainer() )
   {
     PEncryptedContainer enc_cont;
     enc_cont.set_version( MESSAGE_FORMAT_VERSION );
@@ -150,7 +168,7 @@ public:
 
   void sendMessageTo(const PInnerContainer& msg, const std::string& receiver) {
     auto ips = peers_.getIpByPubKey(receiver);
-    auto cont = createEncryptedContainer(msg, receiver);
+    auto cont = createEncryptedContainer(receiver, msg);
     for(const auto& ip : ips ) {
       sendMessageToIP( cont, ip );
     }
@@ -183,11 +201,11 @@ protected:
         } );
   }
 
+  udp::endpoint remote_endpoint_;
+  std::array<char, MAX_MSG_LEN> recv_buffer_;
   asio::ip::address_v6 multicast_address_;
   asio::io_service io_service_;
   udp::socket socket_;
-  udp::endpoint remote_endpoint_;
-  std::array<char, MAX_MSG_LEN> recv_buffer_;
   Crypto crypto_;
   Peers peers_;
 };
