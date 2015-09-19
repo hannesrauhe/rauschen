@@ -5,7 +5,7 @@
 class Logger {
 protected:
   static void log(const std::string& level, const std::string& msg) {
-    std::cerr<<"["<<level<<"] "<<msg<<std::endl;
+//    std::cerr<<"["<<level<<"] "<<msg<<std::endl;
   }
 
 public:

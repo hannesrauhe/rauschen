@@ -1,10 +1,10 @@
 #pragma once
 
+#include "internal_commands.hpp"
 #include "logger.hpp"
 #include "message.pb.h"
 #include "crypto.hpp"
 #include "peers.hpp"
-#include "internal_commands.hpp"
 
 #include <iostream>
 #include <string>
@@ -18,9 +18,7 @@ using asio::ip::udp;
 class Server
 {
 public:
-  const static uint16_t REMOTE_PORT = 2442;
   const static uint32_t MAX_MSG_LEN = 32768;
-  const static int MESSAGE_FORMAT_VERSION = 1;
   const static char* MULTICAST_ADDR;
   const static char* KEY_FILE;
 
@@ -41,7 +39,7 @@ private:
     multicast_address_ = asio::ip::address_v6::from_string(MULTICAST_ADDR);
 
     // Create the socket so that multiple may be bound to the same address.
-    asio::ip::udp::endpoint listen_endpoint(udp::v6(), REMOTE_PORT);
+    asio::ip::udp::endpoint listen_endpoint(udp::v6(), RAUSCH_PORT);
     socket_.open(listen_endpoint.protocol());
     socket_.set_option(asio::ip::udp::socket::reuse_address(true));
     socket_.bind(listen_endpoint);
@@ -131,7 +129,7 @@ public:
   PEncryptedContainer createEncryptedContainer( const std::string& receiver = "", const PInnerContainer& inner_cont = PInnerContainer() )
   {
     PEncryptedContainer enc_cont;
-    enc_cont.set_version( MESSAGE_FORMAT_VERSION );
+    enc_cont.set_version( RAUSCH_MESSAGE_FORMAT_VERSION );
     enc_cont.set_pubkey(crypto_.getPubKey());
     if ( !receiver.empty() )
     {
@@ -195,7 +193,7 @@ public:
 protected:
   void sendMessageToIP( const PEncryptedContainer& message, const asio::ip::address_v6& ip )
   {
-    socket_.async_send_to( asio::buffer( message.SerializeAsString() ), asio::ip::udp::endpoint( ip, REMOTE_PORT ),
+    socket_.async_send_to( asio::buffer( message.SerializeAsString() ), asio::ip::udp::endpoint( ip, RAUSCH_PORT ),
         [this](std::error_code /*ec*/, std::size_t /*bytes_sent*/)
         {
         } );

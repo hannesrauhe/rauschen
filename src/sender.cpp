@@ -1,3 +1,5 @@
+#define ASIO_STANDALONE
+
 #include "message.pb.h"
 #include "internal_commands.hpp"
 #include <iostream>
@@ -11,8 +13,6 @@
 
 using asio::ip::udp;
 
-const static uint16_t REMOTE_PORT = 2442;
-const static uint16_t MESSAGE_FORMAT_VERSION = 1;
 enum { max_length = 8192 };
 
 void ping_echo(const std::string& host)
@@ -20,14 +20,14 @@ void ping_echo(const std::string& host)
   Crypto::gcryptInit();
   asio::io_service io_service;
 
-  udp::socket s(io_service, udp::endpoint(udp::v6(), REMOTE_PORT));
+  udp::socket s(io_service, udp::endpoint(udp::v6(), RAUSCH_PORT));
 
   udp::resolver resolver(io_service);
-  udp::endpoint endpoint = *resolver.resolve({udp::v6(), host, "2442"});
+  udp::endpoint endpoint = *resolver.resolve({udp::v6(), host, std::to_string(RAUSCH_PORT)});
 
   Crypto crypto("test.key2");
   PEncryptedContainer enc_cont;
-  enc_cont.set_version( MESSAGE_FORMAT_VERSION );
+  enc_cont.set_version( RAUSCH_MESSAGE_FORMAT_VERSION );
   enc_cont.set_pubkey(crypto.getPubKey());
   s.send_to(asio::buffer(enc_cont.SerializeAsString()), endpoint);
   std::cout<<"Send ping to "<< endpoint.address().to_string() <<std::endl;

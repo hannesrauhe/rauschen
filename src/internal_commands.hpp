@@ -5,4 +5,6 @@
 
 #pragma once
 
+#include "common.hpp"
+
 static const char* SEND_CMD = "_send";
