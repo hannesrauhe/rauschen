@@ -61,70 +61,23 @@ public:
   }
 
   void run() {
-//    std::thread maintenance([&, this]() {
-//      while(true) {
-//        if(peers_.empty()) {
-//          Logger::debug("Broadcast");
-//          this->sendMessageToIP(
-//              this->createEncryptedContainer(),
-//              this->multicast_address_
-//              );
-//        }
-//        std::this_thread::sleep_for(std::chrono::seconds(60));
-//      }
-//    });
+    std::thread maintenance([&, this]() {
+      while(true) {
+        if(peers_.empty()) {
+          Logger::debug("Broadcast");
+          this->sendMessageToIP(
+              this->createEncryptedContainer(),
+              this->multicast_address_
+              );
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(60));
+      }
+    });
     io_service_.run();
   }
 
-  void startReceive()
-  {
-    socket_.async_receive_from( asio::buffer( recv_buffer_ ), remote_endpoint_,
-        [this](const asio::error_code& error,
-            size_t bytes_recvd)
-        {
-          if (error)
-          {
-            Logger::info(error.message());
-          }
-          else
-          {
-            if(remote_endpoint_.address().is_loopback())
-            {
-              PInnerContainer container;
-              container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
-              startReceive();
-              executeCommand(container);
-              return;
-            }
-            else
-            {
-              auto sender = remote_endpoint_.address().to_v6();
-              PEncryptedContainer container;
-              container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
-              startReceive();
-              handleReceivedMessage(sender, container);
-              return;
-            }
-          }
-        } );
-  }
+  void startReceive();
 
-  void handleReceivedMessage(Peers::ip_t sender, PEncryptedContainer container) {
-    if(!container.has_pubkey()) {
-      Logger::debug("Received invalid message from "+sender.to_string());
-      return;
-    }
-    if(crypto_.getPubKey() == container.pubkey())
-    {
-      std::cout<<"Received actual message from myself"<<std::endl;
-      return;
-    }
-    Logger::debug("Received Message from "+Crypto::getFingerprint(container.pubkey())+" - "+sender.to_string());
-    if(!container.has_container()) { //just a ping
-      sendMessageToIP(createEncryptedContainer(container.pubkey()), sender);
-    }
-
-  }
 
   PEncryptedContainer createEncryptedContainer( const std::string& receiver = "", const PInnerContainer& inner_cont = PInnerContainer() )
   {
@@ -142,33 +95,15 @@ public:
     return enc_cont;
   }
 
-  void executeCommand(const PInnerContainer& container) {
-    if(container.IsInitialized()) {
-//      std::cout<<container.command_arg()<<": "<<container.type()<<" "<<container.message()<<std::endl;
-      if(container.type()==SEND_CMD) {
-        if(container.has_message()) {
-          PSendCommand nested_cont;
-          nested_cont.ParseFromString(container.message());
-          if(container.has_receiver()) {
-            sendMessageTo(nested_cont.cont_to_send(), container.receiver());
-          } else {
-            broadcastMessage(nested_cont.cont_to_send());
-          }
-        } else {
-          broadcastPing();
-        }
+  void sendMessageTo(const PInnerContainer& msg, const std::string& receiver, ip_t single_ip = ip_t::any()) {
+    auto cont = createEncryptedContainer(receiver, msg);
+    if(single_ip == ip_t::any()) {
+      auto ips = peers_.getIpByPubKey(receiver);
+      for(const auto& ip : ips ) {
+        sendMessageToIP( cont, ip );
       }
     } else {
-      Logger::error("Cannot parse local message:");
-      Logger::error(container.InitializationErrorString());
-    }
-  }
-
-  void sendMessageTo(const PInnerContainer& msg, const std::string& receiver) {
-    auto ips = peers_.getIpByPubKey(receiver);
-    auto cont = createEncryptedContainer(receiver, msg);
-    for(const auto& ip : ips ) {
-      sendMessageToIP( cont, ip );
+      sendMessageToIP( cont, single_ip );
     }
   }
   void broadcastMessage(const PInnerContainer& msg) {
@@ -176,6 +111,7 @@ public:
 //    auto cont = createEncryptedContainer(msg, receiver);
 //    sendMessageToIP( cont, ip );
   }
+
   void broadcastPing(bool use_multicast = false) {
     if(use_multicast) {
       this->sendMessageToIP(
@@ -188,6 +124,10 @@ public:
         this->sendMessageToIP( cont, ip );
       }
     }
+  }
+
+  Peers& getPeers() {
+    return peers_;
   }
 
 protected:

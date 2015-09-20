@@ -7,5 +7,8 @@
 #define ASIO_HAS_STD_SHARED_PTR
 #define ASIO_HAS_STD_TYPE_TRAITS
 
+#include <asio.hpp>
+
+using ip_t = asio::ip::address_v6;
 const static unsigned RAUSCH_PORT = 2442;
 const static unsigned RAUSCH_MESSAGE_FORMAT_VERSION = 1;

@@ -4,10 +4,10 @@
 #include <mutex>
 #include <unordered_map>
 #include <algorithm>
+#include <set>
 
 class Peers {
 public:
-  using ip_t = asio::ip::address_v6;
   using ips_t = std::set<ip_t>;
 
   bool add(asio::ip::udp IP, PubKey key) {

@@ -46,7 +46,7 @@ public:
 
     if ( err )
     {
-      throw std::runtime_error( "gcrypt: library version mismatch" );
+      throw std::runtime_error( "gcrypt: problem when initializing secure memory" );
     }
   }
 
@@ -81,7 +81,7 @@ public:
 
     auto length = gcry_sexp_sprint( rsa_keypair, GCRYSEXP_FMT_DEFAULT, nullptr, 0 );
 
-    std::unique_ptr<char> rsa_buf( new char[length] );
+    std::unique_ptr<char[]> rsa_buf( new char[length] );
     gcry_sexp_sprint( rsa_keypair, GCRYSEXP_FMT_DEFAULT, rsa_buf.get(), length );
 
     lockf.write( rsa_buf.get(), length );
@@ -122,8 +122,11 @@ public:
     }
 
     keypair_file.seekg( 0, std::ios::end );
-    auto file_size = keypair_file.tellg();
+    size_t file_size = keypair_file.tellg();
 
+    if(file_size==0) {
+      throw std::runtime_error( "keyfile is empty" );
+    }
     std::unique_ptr<char[]> rsabuf( new char[file_size] );
     keypair_file.seekg( 0, std::ios::beg );
     keypair_file.read( rsabuf.get(), file_size );
