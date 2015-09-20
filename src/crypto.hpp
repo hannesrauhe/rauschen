@@ -165,12 +165,40 @@ public:
   }
 
   std::string sign( const std::string& data) {
-    return "";
+    gcry_sexp_t data_to_sign = copyStringToSexp(data);
+    gcry_sexp_t signature;
+    gcry_error_t err = 0;
+
+    err = gcry_pk_sign (&signature, data_to_sign, privk_);
+
+    gcry_sexp_release( data_to_sign );
+
+    if( err ) {
+      std::runtime_error("signing failed.");
+    }
+    return moveSexpToString(signature);
+  }
+
+  bool verify( const std::string& data, const std::string& signature_str, const std::string other_key) {
+    auto sig = copyStringToSexp(signature_str);
+    auto dat = copyStringToSexp(data);
+    auto key = copyStringToSexp(other_key);
+    auto err = gcry_pk_verify (sig, dat, key);
+
+    gcry_sexp_release( dat );
+    gcry_sexp_release( sig );
+    gcry_sexp_release( key );
+    return 0==err;
   }
 
   std::string encrypt( const std::string& data, const std::string& other_key )
   {
-    return "";
+    return data;
+  }
+
+  std::string decrypt( const std::string& data )
+  {
+    return data;
   }
 
   ~Crypto()
@@ -190,6 +218,33 @@ public:
     return (keypair_nbits + rem) / 8;
   }
 protected:
+
+  std::string moveSexpToString(gcry_sexp_t sexp_data) {
+    auto length = gcry_sexp_sprint( sexp_data, GCRYSEXP_FMT_DEFAULT, nullptr, 0 );
+    std::unique_ptr<char[]> data_str( new char[length] );
+    gcry_sexp_sprint( sexp_data, GCRYSEXP_FMT_DEFAULT, data_str.get(), length );
+
+    std::string return_string;
+    return_string.assign( data_str.get(), length );
+    gcry_sexp_release( sexp_data );
+
+    return return_string;
+  }
+
+  gcry_sexp_t copyStringToSexp(const std::string& data) {
+    if( data.empty() ) {
+      throw std::runtime_error( "data for sexp is empty" );
+    }
+    gcry_sexp_t sexp;
+    gcry_error_t err = 0;
+    err = gcry_sexp_new( &sexp, data.c_str(), data.length(), 1 );
+    if ( err )
+    {
+      throw std::runtime_error( "Could not read data into sexp" );
+    }
+    return sexp;
+  }
+
   gcry_sexp_t pubk_;
   gcry_sexp_t privk_;
   std::string pubk_str_;

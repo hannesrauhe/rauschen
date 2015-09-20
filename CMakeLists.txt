@@ -25,6 +25,8 @@ if(DEFINED RAUSCHEN_DEP_DIR)
   link_directories(${RAUSCHEN_DEP_DIR}/lib)
 endif()
 
+find_package(GTEST)
+
 # Output directory
 set(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})

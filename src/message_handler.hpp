@@ -10,9 +10,10 @@ public:
 
   void executeCommand( const PInnerContainer& container );
 
-  void handleReceivedMessage( const PEncryptedContainer& container );
+  void handleReceivedMessage( const PInnerContainer& container );
 protected:
   Server& server_ = Server::getInstance();
   Peers& peers_ = server_.getPeers();
+  Crypto& crypto_ = server_.getCrypto();
   ip_t sender_;
 };

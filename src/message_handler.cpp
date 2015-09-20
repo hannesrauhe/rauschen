@@ -37,13 +37,7 @@ void MessageHandler::executeCommand( const PInnerContainer& container )
   }
 }
 
-void MessageHandler::handleReceivedMessage( const PEncryptedContainer& container )
+void MessageHandler::handleReceivedMessage( const PInnerContainer& container )
 {
-  Logger::debug(
-      "Received Message from " + Crypto::getFingerprint( container.pubkey() ) + " - " + sender_.to_string() );
-  if ( !container.has_container() )
-  {
-    //just a ping
-    server_.sendMessageTo( PInnerContainer(), container.pubkey(), sender_ );
-  }
+  Logger::info("Signed message from "+sender_.to_string() +" received: "+ container.DebugString());
 }

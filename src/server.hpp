@@ -78,6 +78,8 @@ public:
 
   void startReceive();
 
+  bool checkAndEncrypt(const PEncryptedContainer& outer, PInnerContainer& container, ip_t sender);
+
 
   PEncryptedContainer createEncryptedContainer( const std::string& receiver = "", const PInnerContainer& inner_cont = PInnerContainer() )
   {
@@ -128,6 +130,9 @@ public:
 
   Peers& getPeers() {
     return peers_;
+  }
+  Crypto& getCrypto() {
+    return crypto_;
   }
 
 protected:
