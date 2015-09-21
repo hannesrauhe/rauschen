@@ -10,5 +10,9 @@
 #include <asio.hpp>
 
 using ip_t = asio::ip::address_v6;
-const static unsigned RAUSCH_PORT = 2442;
 const static unsigned RAUSCH_MESSAGE_FORMAT_VERSION = 1;
+
+//config
+
+const static unsigned RAUSCH_PORT = 2442;
+const static unsigned RAUSCH_BROADCAST_INTERVAL = 10;

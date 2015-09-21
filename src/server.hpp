@@ -70,7 +70,7 @@ public:
               this->multicast_address_
               );
         }
-        std::this_thread::sleep_for(std::chrono::seconds(60));
+        std::this_thread::sleep_for(std::chrono::seconds(RAUSCH_BROADCAST_INTERVAL));
       }
     });
     io_service_.run();
@@ -91,6 +91,12 @@ public:
       PSignedContainer sign_cont;
       auto inner_cont_ptr = sign_cont.mutable_inner_cont();
       *inner_cont_ptr = inner_cont;
+      if(!inner_cont_ptr->has_timestamp()) {
+        inner_cont_ptr->set_timestamp(std::chrono::seconds(std::time(nullptr)).count());
+      }
+      if(!inner_cont_ptr->has_receiver()) {
+        inner_cont_ptr->set_receiver(Crypto::getFingerprint(receiver));
+      }
       sign_cont.set_signature( crypto_.sign( inner_cont_ptr->SerializeAsString() ) );
       enc_cont.set_container( crypto_.encrypt( sign_cont.SerializeAsString(), receiver ) );
     }
