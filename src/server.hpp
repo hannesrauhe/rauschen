@@ -19,8 +19,6 @@ class Server
 {
 public:
   const static uint32_t MAX_MSG_LEN = 32768;
-  const static char* MULTICAST_ADDR;
-  const static char* KEY_FILE;
 
   static Server& getInstance() {
     static Server singleton_;
@@ -34,23 +32,32 @@ public:
 
 private:
   Server()
-    : socket_(io_service_), crypto_(KEY_FILE)
+    : socket_(io_service_), crypto_(RAUSCHEN_KEY_FILE)
   {
-    multicast_address_ = asio::ip::address_v6::from_string(MULTICAST_ADDR);
-
     // Create the socket so that multiple may be bound to the same address.
-    asio::ip::udp::endpoint listen_endpoint(udp::v6(), RAUSCH_PORT);
+    asio::ip::udp::endpoint listen_endpoint(udp::v6(), RAUSCHEN_PORT);
     socket_.open(listen_endpoint.protocol());
     socket_.set_option(asio::ip::udp::socket::reuse_address(true));
     socket_.bind(listen_endpoint);
 
-    // Join the multicast group.
-    socket_.set_option(
-        asio::ip::multicast::join_group(multicast_address_));
+
+    multicast_address_ = asio::ip::address_v6::from_string(RAUSCHEN_MULTICAST_ADDR);
+    if(multicast_address_.is_multicast_site_local()) {
+      try {
+        socket_.set_option(
+            asio::ip::multicast::join_group(multicast_address_, RAUSCHEN_PORT));
+      } catch(...) {
+        Logger::warn("Cannot join multicast group - disabling.");
+        multicast_address_ = ip_t::any();
+      }
+    } else {
+      Logger::warn("There is no valid site local multicast address defined");
+    }
 
     Logger log;
     log.info(crypto_.getFingerprint(crypto_.getPubKey()));
     log.info(std::string("Listening on ")+listen_endpoint.address().to_string());
+    log.info(std::string("Joined Multicast Group ")+multicast_address_.to_string());
     startReceive();
   }
 
@@ -60,21 +67,9 @@ public:
     return io_service_;
   }
 
-  void run() {
-    std::thread maintenance([&, this]() {
-      while(true) {
-        if(peers_.empty()) {
-          Logger::debug("Broadcast");
-          this->sendMessageToIP(
-              this->createEncryptedContainer(),
-              this->multicast_address_
-              );
-        }
-        std::this_thread::sleep_for(std::chrono::seconds(RAUSCH_BROADCAST_INTERVAL));
-      }
-    });
-    io_service_.run();
-  }
+  void run();
+
+  void runMaintenance();
 
   void startReceive();
 
@@ -84,7 +79,7 @@ public:
   PEncryptedContainer createEncryptedContainer( const std::string& receiver = "", const PInnerContainer& inner_cont = PInnerContainer() )
   {
     PEncryptedContainer enc_cont;
-    enc_cont.set_version( RAUSCH_MESSAGE_FORMAT_VERSION );
+    enc_cont.set_version( RAUSCHEN_MESSAGE_FORMAT_VERSION );
     enc_cont.set_pubkey(crypto_.getPubKey());
     if ( !receiver.empty() )
     {
@@ -122,14 +117,14 @@ public:
 
   void broadcastPing(bool use_multicast = false) {
     if(use_multicast) {
-      this->sendMessageToIP(
-          this->createEncryptedContainer(),
-          this->multicast_address_
+      sendMessageToIP(
+          createEncryptedContainer(),
+          multicast_address_
           );
     } else {
-      auto cont = this->createEncryptedContainer();
+      auto cont = createEncryptedContainer();
       for(const auto& ip : peers_.getAllIPs()) {
-        this->sendMessageToIP( cont, ip );
+        sendMessageToIP( cont, ip );
       }
     }
   }
@@ -144,12 +139,14 @@ public:
 protected:
   void sendMessageToIP( const PEncryptedContainer& message, const asio::ip::address_v6& ip )
   {
-    socket_.async_send_to( asio::buffer( message.SerializeAsString() ), asio::ip::udp::endpoint( ip, RAUSCH_PORT ),
+    Logger::debug("Contacting "+ip.to_string());
+    socket_.async_send_to( asio::buffer( message.SerializeAsString() ), asio::ip::udp::endpoint( ip, RAUSCHEN_PORT ),
         [this](std::error_code /*ec*/, std::size_t /*bytes_sent*/)
         {
         } );
   }
 
+  bool running = false;
   udp::endpoint remote_endpoint_;
   std::array<char, MAX_MSG_LEN> recv_buffer_;
   asio::ip::address_v6 multicast_address_;
