@@ -10,7 +10,7 @@ class Peers {
 public:
   using ips_t = std::set<ip_t>;
 
-  bool add(asio::ip::udp IP, PubKey key) {
+  bool add(asio::ip::udp IP, std::string key) {
     std::lock_guard<std::mutex> lock(peer_lock_);
     return true;
   }

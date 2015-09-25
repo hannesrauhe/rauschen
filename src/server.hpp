@@ -3,7 +3,6 @@
 #include "internal_commands.hpp"
 #include "logger.hpp"
 #include "message.pb.h"
-#include "crypto.hpp"
 #include "peers.hpp"
 
 #include <iostream>
@@ -12,6 +11,7 @@
 #include <thread>
 #include <functional>
 #include <asio.hpp>
+#include "crypto.hpp"
 
 using asio::ip::udp;
 
@@ -46,6 +46,7 @@ private:
       try {
         socket_.set_option(
             asio::ip::multicast::join_group(multicast_address_, RAUSCHEN_PORT));
+        Logger::info(std::string("Joined Multicast Group ")+multicast_address_.to_string());
       } catch(...) {
         Logger::warn("Cannot join multicast group - disabling.");
         multicast_address_ = ip_t::any();
@@ -57,7 +58,6 @@ private:
     Logger log;
     log.info(crypto_.getFingerprint(crypto_.getPubKey()));
     log.info(std::string("Listening on ")+listen_endpoint.address().to_string());
-    log.info(std::string("Joined Multicast Group ")+multicast_address_.to_string());
     startReceive();
   }
 

@@ -19,4 +19,4 @@ const static unsigned RAUSCHEN_PORT = 2442;
 const static unsigned RAUSCHEN_BROADCAST_INTERVAL = 10;
 
 const static char* RAUSCHEN_MULTICAST_ADDR = "FF05::DB8:80:4213";
-const static char* RAUSCHEN_KEY_FILE = "test.key";
+const static char* RAUSCHEN_KEY_FILE = "key";

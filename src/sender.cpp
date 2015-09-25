@@ -1,3 +1,4 @@
+
 #define ASIO_STANDALONE
 
 #include "message.pb.h"
@@ -17,7 +18,6 @@ enum { max_length = 8192 };
 
 void ping_echo(const std::string& host)
 {
-  Crypto::gcryptInit();
   asio::io_service io_service;
 
   udp::socket s(io_service, udp::endpoint(udp::v6(), RAUSCHEN_PORT));

@@ -1,7 +1,6 @@
 #include "server.hpp"
 
 int main(int argc, char* argv[]) {
-  Crypto::gcryptInit();
   {
     std::ifstream f(RAUSCHEN_KEY_FILE);
     if(!f.good()) {
