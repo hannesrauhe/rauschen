@@ -35,7 +35,7 @@ Server::Server()
   Logger::info( crypto_.getFingerprint( crypto_.getPubKey() ) );
   Logger::info( std::string( "Listening on " ) + listen_endpoint.address().to_string() );
 
-  dispatcher_ = new MessageDispatcher();
+  dispatcher_ = new MessageDispatcher(peers_, crypto_);
   startReceive();
 }
 

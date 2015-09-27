@@ -5,10 +5,15 @@
 
 class MessageDispatcher {
 public:
+  MessageDispatcher(Peers& peers,Crypto& crypto) : peers_(peers), crypto_(crypto) {
+    actions_[MTYPE_REQUEST_PEERS] = new RequestPeersAction();
+  }
+
   void registerNewType(std::string mtype, MessageAction& action);
 
   void executeCommand( const PInnerContainer& container )
   {
+    Server& server_ = Server::getInstance();
     if ( container.IsInitialized() )
     {
       if ( container.type() == SEND_CMD )
@@ -40,6 +45,7 @@ public:
   }
 
   bool dispatch( const ip_t& sender, const std::string& sender_key, const PInnerContainer& container ) {
+    Server& server_ = Server::getInstance();
     Logger::info("Signed message from "+sender.to_string() +" received: "+ container.DebugString());
     if( peers_.add(sender, sender_key) ) {
       PInnerContainer cont;
@@ -49,8 +55,7 @@ public:
     return true;
   }
 protected:
-  Server& server_ = Server::getInstance();
-  Peers& peers_ = server_.getPeers();
-  Crypto& crypto_ = server_.getCrypto();
+  Peers& peers_;
+  Crypto& crypto_ ;
   std::unordered_map<std::string, MessageAction*> actions_;
 };

@@ -10,7 +10,7 @@ public:
 
 };
 
-class RequestPeersAction {
+class RequestPeersAction : public MessageAction {
 public:
   bool process(const ip_t& sender, const std::string& sender_key, const PInnerContainer& container) {
     return true;
