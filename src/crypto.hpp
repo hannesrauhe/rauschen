@@ -135,9 +135,13 @@ public:
     return true;
   }
 
-  std::string encrypt( const std::string& plain, const std::string& other_key )
+  std::string encrypt( const std::string& plain, const std::string& other_key_str )
   {
     std::string cipher;
+    RSA::PublicKey key;
+    CryptoPP::ByteQueue bt;
+    StringSource s(other_key_str, true, &bt);
+    key.Load(bt);
 
     RSAES_OAEP_SHA_Encryptor e( pubk_ );
 

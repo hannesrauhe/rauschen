@@ -119,7 +119,7 @@ void Server::startReceive()
     }
     else
     {
-      try
+//      try
       {
         auto sender = remote_endpoint_.address().to_v6();
         if(remote_endpoint_.address().is_loopback())
@@ -141,11 +141,11 @@ void Server::startReceive()
           }
         }
       }
-      catch (const std::exception& e)
-      {
-        Logger::error("Error when receiving message");
-        Logger::error(e.what());
-      }
+//      catch (const std::exception& e)
+//      {
+//        Logger::error("Error when receiving message");
+//        Logger::error(e.what());
+//      }
     }
   } );
 }

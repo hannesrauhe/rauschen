@@ -9,13 +9,13 @@ message PEncryptedContainer {
 
 message PSignedContainer {
   optional PInnerContainer inner_cont = 1;
-  optional string signature  = 2;
+  optional bytes signature  = 2;
 }
 
 message PInnerContainer {
   optional string type     = 1;
-  optional string message  = 2;
-  optional string receiver = 3;
+  optional bytes message  = 2;
+  optional bytes receiver = 3;
   optional int64 timestamp = 4;
 }
 
