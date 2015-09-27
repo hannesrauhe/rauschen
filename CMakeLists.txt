@@ -3,7 +3,7 @@ cmake_minimum_required( VERSION 2.8 )
 project(Rauschen)
 
 set(CMAKE_CXX_STANDARD 11)
-if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if (NOT MSVC)
   include(CheckCXXCompilerFlag)
   CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
   CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
@@ -16,16 +16,30 @@ if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   endif()
 endif()
 
+#static runtime linking for Windows
+if(MSVC)
+  set(CMAKE_C_FLAGS_DEBUG_INIT "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
+  set(CMAKE_C_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
+  set(CMAKE_C_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
+  set(CMAKE_CXX_FLAGS_DEBUG_INIT "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
+  set(CMAKE_CXX_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
+  set(CMAKE_CXX_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
+endif()
+
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 if(DEFINED RAUSCHEN_DEP_DIR)
-  message(INFO "Using additional dependency directory")
+  message(INFO " Using additional dependency directory")
   include_directories(${RAUSCHEN_DEP_DIR}/include)
   link_directories(${RAUSCHEN_DEP_DIR}/lib)
 endif()
 
-find_package(GTEST)
+if(BUILD_TESTS)
+  find_package(GTEST)
+endif()
 
 # Output directory
 set(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)

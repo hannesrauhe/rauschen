@@ -13,8 +13,10 @@ target_link_libraries(rauschen cryptopp ${PROTOBUF_LIBRARIES})
 #target_link_libraries(sender cryptopp ${PROTOBUF_LIBRARIES})
 
 ##### build tests #####
-set(RAUSCHEN_TEST_FILES
-  test/test_crypto.cpp
-)
-add_executable(test_rauschen ${RAUSCHEN_TEST_FILES} ${PROTO_SRCS})
-target_link_libraries(test_rauschen cryptopp gtest asan c ${PROTOBUF_LIBRARIES})
+if(BUILD_TESTS)
+  set(RAUSCHEN_TEST_FILES
+    test/test_crypto.cpp
+  )
+  add_executable(test_rauschen ${RAUSCHEN_TEST_FILES} ${PROTO_SRCS})
+  target_link_libraries(test_rauschen cryptopp gtest asan c ${PROTOBUF_LIBRARIES})
+endif()

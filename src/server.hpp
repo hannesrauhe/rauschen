@@ -5,6 +5,7 @@
 #include "message.pb.h"
 #include "peers.hpp"
 
+#include <ctime>
 #include <iostream>
 #include <string>
 #include <memory>
