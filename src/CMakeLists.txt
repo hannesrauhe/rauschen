@@ -3,7 +3,7 @@ PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS message.proto)
 set(RAUSCHEN_CPP_FILES
   main.cpp
   server.cpp
-  message_handler.cpp
+#  message_handler.cpp
 )
 
 add_executable(rauschen ${RAUSCHEN_CPP_FILES} ${PROTO_SRCS})

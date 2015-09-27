@@ -1,7 +1,43 @@
 #include "server.hpp"
-#include "message_handler.hpp"
+#include "message_dispatcher.hpp"
 
 #include <csignal>
+
+Server::Server()
+    : socket_( io_service_ ),
+      crypto_( RAUSCHEN_KEY_FILE )
+{
+// Create the socket so that multiple may be bound to the same address.
+  asio::ip::udp::endpoint listen_endpoint( udp::v6(), RAUSCHEN_PORT );
+  socket_.open( listen_endpoint.protocol() );
+  socket_.set_option( asio::ip::udp::socket::reuse_address( true ) );
+  socket_.bind( listen_endpoint );
+
+  multicast_address_ = asio::ip::address_v6::from_string( RAUSCHEN_MULTICAST_ADDR );
+  if ( multicast_address_.is_multicast_site_local() )
+  {
+    try
+    {
+      socket_.set_option( asio::ip::multicast::join_group( multicast_address_, RAUSCHEN_PORT ) );
+      Logger::info( std::string( "Joined Multicast Group " ) + multicast_address_.to_string() );
+    }
+    catch ( ... )
+    {
+      Logger::warn( "Cannot join multicast group - disabling." );
+      multicast_address_ = ip_t::any();
+    }
+  }
+  else
+  {
+    Logger::warn( "There is no valid site local multicast address defined" );
+  }
+
+  Logger::info( crypto_.getFingerprint( crypto_.getPubKey() ) );
+  Logger::info( std::string( "Listening on " ) + listen_endpoint.address().to_string() );
+
+  dispatcher_ = new MessageDispatcher();
+  startReceive();
+}
 
 void Server::run()
 {
@@ -14,10 +50,11 @@ void Server::run()
       std::this_thread::sleep_for(std::chrono::seconds(RAUSCHEN_BROADCAST_INTERVAL));
     }
   } );
-// TODO: catch signals
-//  std::signal(SIGINT, [this] (int){ io_service_.stop();});
-//  std::signal(SIGTERM, [this] (int){ io_service_.stop();});
+
+  std::signal(SIGINT, [] (int){ std::cout<<" hey"<<std::endl; Server::getInstance().getIOservice().stop();});
+  std::signal(SIGTERM, [] (int){ Server::getInstance().getIOservice().stop();});
   io_service_.run();
+  Logger::info("Shutting down");
   running = false;
   maintenance.join();
 }
@@ -85,13 +122,12 @@ void Server::startReceive()
       try
       {
         auto sender = remote_endpoint_.address().to_v6();
-        MessageHandler msg(sender);
         if(remote_endpoint_.address().is_loopback())
         {
           PInnerContainer container;
           container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
           startReceive();
-          msg.executeCommand(container);
+          dispatcher_->executeCommand(container);
         }
         else
         {
@@ -101,7 +137,7 @@ void Server::startReceive()
           PInnerContainer container;
           if(checkAndEncrypt(outer_container, container, sender))
           {
-            msg.handleReceivedMessage(container);
+            dispatcher_->dispatch(sender, outer_container.pubkey(), container);
           }
         }
       }

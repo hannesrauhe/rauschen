@@ -16,6 +16,8 @@
 
 using asio::ip::udp;
 
+class MessageDispatcher;
+
 class Server
 {
 public:
@@ -32,42 +34,9 @@ public:
   Server& operator=(Server&&) = delete;
 
 private:
-  Server()
-    : socket_(io_service_), crypto_(RAUSCHEN_KEY_FILE)
-  {
-    // Create the socket so that multiple may be bound to the same address.
-    asio::ip::udp::endpoint listen_endpoint(udp::v6(), RAUSCHEN_PORT);
-    socket_.open(listen_endpoint.protocol());
-    socket_.set_option(asio::ip::udp::socket::reuse_address(true));
-    socket_.bind(listen_endpoint);
-
-
-    multicast_address_ = asio::ip::address_v6::from_string(RAUSCHEN_MULTICAST_ADDR);
-    if(multicast_address_.is_multicast_site_local()) {
-      try {
-        socket_.set_option(
-            asio::ip::multicast::join_group(multicast_address_, RAUSCHEN_PORT));
-        Logger::info(std::string("Joined Multicast Group ")+multicast_address_.to_string());
-      } catch(...) {
-        Logger::warn("Cannot join multicast group - disabling.");
-        multicast_address_ = ip_t::any();
-      }
-    } else {
-      Logger::warn("There is no valid site local multicast address defined");
-    }
-
-    Logger log;
-    log.info(crypto_.getFingerprint(crypto_.getPubKey()));
-    log.info(std::string("Listening on ")+listen_endpoint.address().to_string());
-    startReceive();
-  }
+  Server();
 
 public:
-
-  asio::io_service& getIOservice() {
-    return io_service_;
-  }
-
   void run();
 
   void runMaintenance();
@@ -75,7 +44,6 @@ public:
   void startReceive();
 
   bool checkAndEncrypt(const PEncryptedContainer& outer, PInnerContainer& container, ip_t sender);
-
 
   PEncryptedContainer createEncryptedContainer( const std::string& receiver = "", const PInnerContainer& inner_cont = PInnerContainer() )
   {
@@ -130,6 +98,10 @@ public:
     }
   }
 
+  asio::io_service& getIOservice() {
+    return io_service_;
+  }
+
   Peers& getPeers() {
     return peers_;
   }
@@ -155,4 +127,5 @@ protected:
   udp::socket socket_;
   Crypto crypto_;
   Peers peers_;
+  MessageDispatcher* dispatcher_;
 };

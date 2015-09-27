@@ -7,4 +7,5 @@
 
 #include "common.hpp"
 
-static const char* SEND_CMD = "_send";
+static const char* SEND_CMD = "__send";
+static const char* MTYPE_REQUEST_PEERS = "_requestPeers";
