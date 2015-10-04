@@ -111,9 +111,9 @@ public:
 
   bool checkAndEncrypt( const PEncryptedContainer& outer, std::unique_ptr<PInnerContainer>& inner_container )
   {
-//    Logger::debug( "Received Message from " + Crypto::getFingerprint( outer.pubkey() ) + " - " + sender.to_string() );
-    if ( !outer.has_pubkey() || !outer.has_sym_key() || !outer.has_sym_iv())
+    if ( !outer.has_pubkey())
     {
+      Logger::debug( "invalid message: " + outer.DebugString());
       return false;
     }
     if ( pubk_str_ == outer.pubkey() )
@@ -122,7 +122,7 @@ public:
       //record ip
       return false;
     }
-    if ( !outer.has_container() )
+    if ( !outer.has_container() || !outer.has_sym_key() || !outer.has_sym_iv() )
     {
       Logger::debug( "Message was a ping" );
       inner_container.reset();
@@ -139,8 +139,14 @@ public:
     sig_cont.ParseFromString( this->decryptSymmetrically( outer.container(), key, iv ) );
     inner_container.reset( sig_cont.release_inner_cont() );
     bool v_success = verify( inner_container->SerializeAsString(), sig_cont.signature(), outer.pubkey() );
-    if ( !v_success ) Logger::debug( "Verification failed" );
-
+    if ( !v_success ) {
+      Logger::debug( "Verification failed" );
+      return false;
+    }
+    if(inner_container->receiver()!=getFingerprint(pubk_str_)) {
+      Logger::debug( "Message was encrypted with my public key but not meant for me");
+      return false;
+    }
     return v_success;
   }
 

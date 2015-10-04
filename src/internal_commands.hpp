@@ -8,4 +8,5 @@
 #include "common.hpp"
 
 static const char* SEND_CMD = "__send";
-static const char* MTYPE_REQUEST_PEERS = "_requestPeers";
+static const char* MTYPE_REQUEST_PEER_LIST = "_requestPeerList";
+static const char* MTYPE_PEER_LIST = "_PeerList";

@@ -5,8 +5,9 @@
 
 class MessageDispatcher {
 public:
-  MessageDispatcher(Peers& peers,Crypto& crypto) : peers_(peers), crypto_(crypto) {
-    actions_[MTYPE_REQUEST_PEERS] = new RequestPeersAction();
+  MessageDispatcher(Peers& peers) : peers_(peers) {
+    actions_[MTYPE_REQUEST_PEER_LIST] = new RequestPeerListAction(peers_);
+    actions_[MTYPE_PEER_LIST] = new PeerListAction(peers_);
   }
 
   void registerNewType(std::string mtype, MessageAction& action);
@@ -46,16 +47,21 @@ public:
 
   bool dispatch( const ip_t& sender, const std::string& sender_key, const PInnerContainer& container ) {
     Server& server_ = Server::getInstance();
-    Logger::info("Signed message from "+sender.to_string() +" received: "+ container.DebugString());
+    Logger::info("Signed message with from "+sender.to_string() +"/"+Crypto::getFingerprint(sender_key)+" received: "+container.DebugString());
     if( peers_.add(sender, sender_key) ) {
       PInnerContainer cont;
-      cont.set_type(MTYPE_REQUEST_PEERS);
+      cont.set_type(MTYPE_REQUEST_PEER_LIST);
       server_.sendMessageTo(cont, sender_key, sender);
     }
+    auto action = actions_.find(container.type());
+    if(action==actions_.end()) {
+      Logger::info("Unknown message type: "+container.type());
+      return false;
+    }
+    action->second->process(sender, sender_key, container);
     return true;
   }
 protected:
   Peers& peers_;
-  Crypto& crypto_ ;
   std::unordered_map<std::string, MessageAction*> actions_;
 };

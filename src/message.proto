@@ -21,6 +21,9 @@ message PInnerContainer {
   optional int64 timestamp = 4;
 }
 
+message PPeerList {
+  repeated bytes ip = 1;
+}
 /* nested types */
 //_send:
 message PSendCommand {

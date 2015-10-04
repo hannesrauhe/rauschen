@@ -35,7 +35,7 @@ Server::Server()
   Logger::info( crypto_.getFingerprint( crypto_.getPubKey() ) );
   Logger::info( std::string( "Listening on " ) + listen_endpoint.address().to_string() );
 
-  dispatcher_ = new MessageDispatcher(peers_, crypto_);
+  dispatcher_ = new MessageDispatcher(peers_);
   startReceive();
 }
 
@@ -51,7 +51,7 @@ void Server::run()
     }
   } );
 
-  std::signal(SIGINT, [] (int){ std::cout<<" hey"<<std::endl; Server::getInstance().getIOservice().stop();});
+  std::signal(SIGINT, [] (int){ Server::getInstance().getIOservice().stop();});
   std::signal(SIGTERM, [] (int){ Server::getInstance().getIOservice().stop();});
   io_service_.run();
   Logger::info("Shutting down");
@@ -140,8 +140,9 @@ void Server::startReceive()
             if(container==nullptr) {
               //just a ping
               sendMessageTo( PInnerContainer(), outer_container.pubkey(), sender );
+            } else {
+              dispatcher_->dispatch(sender, outer_container.pubkey(), *container);
             }
-            dispatcher_->dispatch(sender, outer_container.pubkey(), *container);
           } else {
             Logger::debug( "Received invalid message from " + sender.to_string() );
           }

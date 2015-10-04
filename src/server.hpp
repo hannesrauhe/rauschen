@@ -73,6 +73,11 @@ public:
     }
   }
 
+  void sendPing(ip_t receiver) {
+    auto cont = crypto_.createEncryptedContainer();
+    sendMessageToIP( cont, receiver );
+  }
+
   asio::io_service& getIOservice() {
     return io_service_;
   }
