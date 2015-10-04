@@ -25,10 +25,9 @@ void ping_echo(const std::string& host)
   udp::resolver resolver(io_service);
   udp::endpoint endpoint = *resolver.resolve({udp::v6(), host, std::to_string(RAUSCHEN_PORT)});
 
-  Crypto crypto("test.key2");
-  PEncryptedContainer enc_cont;
-  enc_cont.set_version( RAUSCHEN_MESSAGE_FORMAT_VERSION );
-  enc_cont.set_pubkey(crypto.getPubKey());
+  Crypto crypto("testkey");
+
+  PEncryptedContainer enc_cont = crypto.createEncryptedContainer();
   s.send_to(asio::buffer(enc_cont.SerializeAsString()), endpoint);
   std::cout<<"Send ping to "<< endpoint.address().to_string() <<std::endl;
 

@@ -3,8 +3,10 @@ message PEncryptedContainer {
   optional string group  = 2;
   optional int32 parts   = 3;
   optional int32 part    = 4;
-  optional bytes pubkey = 5;
-  optional bytes container = 6; //encrypted PSignedContainer
+  optional bytes pubkey  = 5;
+  optional bytes sym_key = 6; // encrypted Symmetric Key
+  optional bytes sym_iv  = 7; // IV for symm encrpytion
+  optional bytes container = 8; //encrypted PSignedContainer
 }
 
 message PSignedContainer {

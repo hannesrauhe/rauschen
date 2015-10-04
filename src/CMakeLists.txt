@@ -9,8 +9,8 @@ set(RAUSCHEN_CPP_FILES
 add_executable(rauschen ${RAUSCHEN_CPP_FILES} ${PROTO_SRCS})
 target_link_libraries(rauschen cryptopp ${PROTOBUF_LIBRARIES})
 
-#add_executable(sender sender.cpp ${PROTO_SRCS})
-#target_link_libraries(sender cryptopp ${PROTOBUF_LIBRARIES})
+add_executable(sender sender.cpp ${PROTO_SRCS})
+target_link_libraries(sender cryptopp ${PROTOBUF_LIBRARIES})
 
 ##### build tests #####
 if(BUILD_TESTS)

@@ -2,7 +2,6 @@
 
 #include "internal_commands.hpp"
 #include "logger.hpp"
-#include "message.pb.h"
 #include "peers.hpp"
 
 #include <ctime>
@@ -43,32 +42,8 @@ public:
 
   void startReceive();
 
-  bool checkAndEncrypt(const PEncryptedContainer& outer, PInnerContainer& container, ip_t sender);
-
-  PEncryptedContainer createEncryptedContainer( const std::string& receiver = "", const PInnerContainer& inner_cont = PInnerContainer() )
-  {
-    PEncryptedContainer enc_cont;
-    enc_cont.set_version( RAUSCHEN_MESSAGE_FORMAT_VERSION );
-    enc_cont.set_pubkey(crypto_.getPubKey());
-    if ( !receiver.empty() )
-    {
-      PSignedContainer sign_cont;
-      auto inner_cont_ptr = sign_cont.mutable_inner_cont();
-      *inner_cont_ptr = inner_cont;
-      if(!inner_cont_ptr->has_timestamp()) {
-        inner_cont_ptr->set_timestamp(std::chrono::seconds(std::time(nullptr)).count());
-      }
-      if(!inner_cont_ptr->has_receiver()) {
-        inner_cont_ptr->set_receiver(Crypto::getFingerprint(receiver));
-      }
-      sign_cont.set_signature( crypto_.sign( inner_cont_ptr->SerializeAsString() ) );
-      enc_cont.set_container( crypto_.encrypt( sign_cont.SerializeAsString(), receiver ) );
-    }
-    return enc_cont;
-  }
-
   void sendMessageTo(const PInnerContainer& msg, const std::string& receiver, ip_t single_ip = ip_t::any()) {
-    auto cont = createEncryptedContainer(receiver, msg);
+    auto cont = crypto_.createEncryptedContainer(receiver, msg);
     if(single_ip == ip_t::any()) {
       auto ips = peers_.getIpByPubKey(receiver);
       for(const auto& ip : ips ) {
@@ -87,11 +62,11 @@ public:
   void broadcastPing(bool use_multicast = false) {
     if(use_multicast) {
       sendMessageToIP(
-          createEncryptedContainer(),
+          crypto_.createEncryptedContainer(),
           multicast_address_
           );
     } else {
-      auto cont = createEncryptedContainer();
+      auto cont = crypto_.createEncryptedContainer();
       for(const auto& ip : peers_.getAllIPs()) {
         sendMessageToIP( cont, ip );
       }

@@ -66,7 +66,7 @@ void Server::runMaintenance()
     if ( multicast_address_.is_multicast_site_local() )
     {
       Logger::debug( "Multicast" );
-      sendMessageToIP( createEncryptedContainer(), multicast_address_ );
+      sendMessageToIP( crypto_.createEncryptedContainer(), multicast_address_ );
     }
     else
     {
@@ -82,7 +82,7 @@ void Server::runMaintenance()
       try
       {
         host_address = ip_t::from_string( host );
-        sendMessageToIP( createEncryptedContainer(), host_address );
+        sendMessageToIP( crypto_.createEncryptedContainer(), host_address );
       }
       catch ( ... )
       {
@@ -95,7 +95,7 @@ void Server::runMaintenance()
           auto h_address = it->endpoint().address();
           if ( h_address.is_v6() )
           {
-            sendMessageToIP( createEncryptedContainer(), h_address.to_v6() );
+            sendMessageToIP( crypto_.createEncryptedContainer(), h_address.to_v6() );
           }
           it++;
         }
@@ -134,10 +134,16 @@ void Server::startReceive()
           PEncryptedContainer outer_container;
           outer_container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
           startReceive();
-          PInnerContainer container;
-          if(checkAndEncrypt(outer_container, container, sender))
+          std::unique_ptr<PInnerContainer> container;
+          if(crypto_.checkAndEncrypt(outer_container, container))
           {
-            dispatcher_->dispatch(sender, outer_container.pubkey(), container);
+            if(container==nullptr) {
+              //just a ping
+              sendMessageTo( PInnerContainer(), outer_container.pubkey(), sender );
+            }
+            dispatcher_->dispatch(sender, outer_container.pubkey(), *container);
+          } else {
+            Logger::debug( "Received invalid message from " + sender.to_string() );
           }
         }
       }
@@ -148,33 +154,4 @@ void Server::startReceive()
 //      }
     }
   } );
-}
-
-bool Server::checkAndEncrypt( const PEncryptedContainer& outer, PInnerContainer& inner_container, ip_t sender )
-{
-  Logger::debug( "Received Message from " + Crypto::getFingerprint( outer.pubkey() ) + " - " + sender.to_string() );
-  if ( !outer.has_pubkey() )
-  {
-    Logger::debug( "Received invalid message from " + sender.to_string() );
-    return false;
-  }
-  if ( crypto_.getPubKey() == outer.pubkey() )
-  {
-    Logger::debug( "Message came from myself" );
-    //record ip
-    return false;
-  }
-  if ( !outer.has_container() )
-  {
-    Logger::debug( "Message was a ping" );
-    //just a ping
-    sendMessageTo( PInnerContainer(), outer.pubkey(), sender );
-    return false;
-  }
-  PSignedContainer sig_cont;
-  sig_cont.ParseFromString( crypto_.decrypt( outer.container() ) );
-  inner_container.CopyFrom( sig_cont.inner_cont() );
-  bool v_success = crypto_.verify( inner_container.SerializeAsString(), sig_cont.signature(), outer.pubkey() );
-  if ( !v_success ) Logger::debug( "Verification failed" );
-  return v_success;
 }
