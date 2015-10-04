@@ -134,6 +134,14 @@ void Server::startReceive()
           PEncryptedContainer outer_container;
           outer_container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
           startReceive();
+
+          if ( outer_container.has_pubkey() && crypto_.getPubKey() == outer_container.pubkey() )
+          { //record my own IP but ignore the message itself
+            Logger::debug( "Message from myself" );
+            peers_.add(sender, crypto_.getPubKey() );
+            return;
+          }
+
           std::unique_ptr<PInnerContainer> container;
           if(crypto_.checkAndEncrypt(outer_container, container))
           {

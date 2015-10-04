@@ -40,7 +40,10 @@ bool PeerListAction::process( const ip_t& sender, const std::string& sender_key,
     for(auto j=0; j<ipbytes.size(); ++j) {
       ipbytes[j] = list.ip(i)[j];
     }
-    Server::getInstance().sendPing(ip_t(ipbytes));
+    ip_t IP(ipbytes);
+    if(!peers_.isPeer(IP)) {
+      Server::getInstance().sendPing(IP);
+    }
   }
   return true;
 }
