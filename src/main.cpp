@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "message_dispatcher.hpp"
 
 int main(int argc, char* argv[]) {
   {
@@ -9,6 +10,9 @@ int main(int argc, char* argv[]) {
   }
 
   auto& s = Server::getInstance();
+
+  //register pre-defined actions here:
+  //auto dispatcher = s.getDispatcher();
   s.run();
   return 0;
 }

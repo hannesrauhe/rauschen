@@ -11,6 +11,16 @@ public:
 
 };
 
+class ExecuteAction : public MessageAction {
+public:
+  ExecuteAction( const std::string& executable );
+
+  bool process( const ip_t& sender, const std::string& sender_key, const PInnerContainer& );
+
+protected:
+  std::string executable_path_;
+};
+
 class RequestPeerListAction : public MessageAction {
 public:
   RequestPeerListAction( Peers& peers );

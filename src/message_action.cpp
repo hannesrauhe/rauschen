@@ -1,3 +1,4 @@
+#include  <cstdlib>
 #include "message_action.hpp"
 #include "server.hpp"
 
@@ -46,4 +47,17 @@ bool PeerListAction::process( const ip_t& sender, const std::string& sender_key,
     }
   }
   return true;
+}
+
+ExecuteAction::ExecuteAction( const std::string& executable )
+    : executable_path_( executable )
+{
+}
+
+bool ExecuteAction::process( const ip_t& sender, const std::string& sender_key, const PInnerContainer& msg)
+{
+  auto cmd = executable_path_;
+  cmd += " "+msg.message();
+  auto ret = std::system(cmd.c_str());
+  return (ret==0);
 }

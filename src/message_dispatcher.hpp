@@ -6,11 +6,13 @@
 class MessageDispatcher {
 public:
   MessageDispatcher(Peers& peers) : peers_(peers) {
-    actions_[MTYPE_REQUEST_PEER_LIST] = new RequestPeerListAction(peers_);
-    actions_[MTYPE_PEER_LIST] = new PeerListAction(peers_);
+    registerNewType( MTYPE_REQUEST_PEER_LIST, new RequestPeerListAction(peers_) );
+    registerNewType( MTYPE_PEER_LIST, new PeerListAction(peers_) );
   }
 
-  void registerNewType(std::string mtype, MessageAction& action);
+  void registerNewType(const std::string& mtype, MessageAction* action) {
+    actions_[mtype].push_back(action);
+  }
 
   void executeCommand( const PInnerContainer& container )
   {
@@ -58,10 +60,12 @@ public:
       Logger::info("Unknown message type: "+container.type());
       return false;
     }
-    action->second->process(sender, sender_key, container);
+    for( auto& selected_action : action->second) {
+      selected_action->process(sender, sender_key, container);
+    }
     return true;
   }
 protected:
   Peers& peers_;
-  std::unordered_map<std::string, MessageAction*> actions_;
+  std::unordered_map<std::string, std::vector<MessageAction*> > actions_;
 };

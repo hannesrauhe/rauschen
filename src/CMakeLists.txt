@@ -17,6 +17,9 @@ target_link_libraries(sender cryptopp ${PROTOBUF_LIBRARIES})
 if(BUILD_TESTS)
   set(RAUSCHEN_TEST_FILES
     test/test_crypto.cpp
+    test/test_dispatcher.cpp
+    server.cpp
+    message_action.cpp
     crypto.cpp
   )
   add_executable(test_rauschen ${RAUSCHEN_TEST_FILES} ${PROTO_SRCS})

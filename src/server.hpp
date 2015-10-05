@@ -88,6 +88,9 @@ public:
   Crypto& getCrypto() {
     return crypto_;
   }
+  MessageDispatcher* getDispatcher() {
+    return dispatcher_;
+  }
 
 protected:
   void sendMessageToIP( const PEncryptedContainer& message, const asio::ip::address_v6& ip )
