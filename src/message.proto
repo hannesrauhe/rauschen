@@ -24,9 +24,15 @@ message PInnerContainer {
 message PPeerList {
   repeated bytes ip = 1;
 }
-/* nested types */
-//_send:
+
+/* API 2 daemon types */
+//__send:
 message PSendCommand {
   optional string receiver = 1;
   optional PInnerContainer cont_to_send = 2;
+}
+
+//__addHost
+message PAddHost {
+  optional bytes ip = 1;
 }

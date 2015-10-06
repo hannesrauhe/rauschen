@@ -122,12 +122,13 @@ void Server::startReceive()
 //      try
       {
         auto sender = remote_endpoint_.address().to_v6();
-        if(remote_endpoint_.address().is_loopback())
+        if(remote_endpoint_.address().is_loopback() ||
+            (sender.is_v4_mapped() && sender.to_v4().is_loopback()))
         {
           PInnerContainer container;
           container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
           startReceive();
-          dispatcher_->executeCommand(container);
+          dispatcher_->executeCommand(container, remote_endpoint_);
         }
         else
         {

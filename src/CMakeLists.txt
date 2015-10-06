@@ -7,11 +7,18 @@ set(RAUSCHEN_CPP_FILES
   message_action.cpp
 )
 
-add_executable(rauschen ${RAUSCHEN_CPP_FILES} ${PROTO_SRCS})
-target_link_libraries(rauschen cryptopp ${PROTOBUF_LIBRARIES})
+set(RAUSCHEN_API_FILES
+  api/rauschen.cpp
+)
 
-add_executable(sender sender.cpp crypto.cpp ${PROTO_SRCS})
-target_link_libraries(sender cryptopp ${PROTOBUF_LIBRARIES})
+add_executable(rauschend ${RAUSCHEN_CPP_FILES} ${PROTO_SRCS})
+target_link_libraries(rauschend cryptopp ${PROTOBUF_LIBRARIES})
+
+add_library(rauschen SHARED ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
+target_link_libraries(rauschen ${PROTOBUF_LIBRARIES})
+
+add_executable(rauschen-add-host tools/add_host.cpp)
+target_link_libraries(rauschen-add-host rauschen ${PROTOBUF_LIBRARIES})
 
 ##### build tests #####
 if(BUILD_TESTS)

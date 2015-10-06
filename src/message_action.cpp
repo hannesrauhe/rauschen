@@ -61,3 +61,20 @@ bool ExecuteAction::process( const ip_t& sender, const std::string& sender_key, 
   auto ret = std::system(cmd.c_str());
   return (ret==0);
 }
+
+CmdAddHostAction::CmdAddHostAction()
+{
+}
+
+bool CmdAddHostAction::process( const ip_t& sender, const std::string& sender_key, const PInnerContainer& container )
+{
+  PAddHost ah;
+  ah.ParseFromString( container.message() );
+  ip_t::bytes_type ipbytes;
+  for(auto j=0; j<ipbytes.size(); ++j) {
+    ipbytes[j] = ah.ip()[j];
+  }
+  ip_t IP(ipbytes);
+  Server::getInstance().sendPing(IP);
+  return true;
+}

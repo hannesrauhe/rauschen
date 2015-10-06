@@ -7,6 +7,7 @@
 
 #include "common.hpp"
 
-static const char* SEND_CMD = "__send";
+static const char* MTYPE_CMD_SEND = "__send";
+static const char* MTYPE_CMD_ADD_HOST = "__addHost";
 static const char* MTYPE_REQUEST_PEER_LIST = "_requestPeerList";
 static const char* MTYPE_PEER_LIST = "_PeerList";

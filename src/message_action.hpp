@@ -40,3 +40,10 @@ public:
 protected:
   Peers& peers_;
 };
+
+class CmdAddHostAction : public MessageAction {
+public:
+  CmdAddHostAction();
+
+  bool process( const ip_t& sender, const std::string& sender_key, const PInnerContainer& );
+};

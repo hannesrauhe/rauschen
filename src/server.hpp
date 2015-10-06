@@ -92,6 +92,11 @@ public:
     return dispatcher_;
   }
 
+  void sendAPIStatusResponse(int8_t status, const asio::ip::udp::endpoint& ep) {
+    socket_.async_send_to( asio::buffer( &status, 1 ), ep,
+        [this](std::error_code /*ec*/, std::size_t /*bytes_sent*/)
+        {});
+  }
 protected:
   void sendMessageToIP( const PEncryptedContainer& message, const asio::ip::address_v6& ip )
   {
