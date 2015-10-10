@@ -1,7 +1,7 @@
 #pragma once
 
+#include "action.hpp"
 #include "server.hpp"
-#include "message_action.hpp"
 
 class MessageDispatcher {
 public:
@@ -12,7 +12,7 @@ public:
     registerNewType( MTYPE_CMD_SEND, new CmdSendAction() );
   }
 
-  void registerNewType(const std::string& mtype, MessageAction* action) {
+  void registerNewType(const std::string& mtype, Action* action) {
     actions_[mtype].push_back(action);
   }
 
@@ -21,9 +21,8 @@ public:
     Server& server_ = Server::getInstance();
     if ( container.IsInitialized() && container.has_type())
     {
-      if(findAndExecuteAction(ip_t::loopback(), "", container)) {
-        server_.sendAPIStatusResponse(0, ep);
-      }
+      int8_t status = findAndExecuteAction(ip_t::loopback(), "", container) ? 0 : 1;
+      server_.sendAPIStatusResponse(status, ep);
     }
     else
     {
@@ -70,5 +69,5 @@ protected:
   }
 protected:
   Peers& peers_;
-  std::unordered_map<std::string, std::vector<MessageAction*> > actions_;
+  std::unordered_map<std::string, std::vector<Action*> > actions_;
 };

@@ -4,7 +4,7 @@ set(RAUSCHEN_CPP_FILES
   main.cpp
   server.cpp
   crypto.cpp
-  message_action.cpp
+  action.cpp
 )
 
 set(RAUSCHEN_API_FILES
@@ -36,7 +36,7 @@ if(BUILD_TESTS)
     test/test_crypto.cpp
     test/test_dispatcher.cpp
     server.cpp
-    message_action.cpp
+    action.cpp
     crypto.cpp
   )
   add_executable(test_rauschen ${RAUSCHEN_TEST_FILES} ${PROTO_SRCS})

@@ -4,15 +4,15 @@
 #include "peers.hpp"
 #include "message.pb.h"
 
-class MessageAction {
+class Action {
 public:
-  virtual ~MessageAction();
+  virtual ~Action();
   virtual bool process(const ip_t& sender, const std::string& sender_key, const PInnerContainer& container) = 0;
 
   virtual bool processMyself() {  return true;  }
 };
 
-class ExecuteAction : public MessageAction {
+class ExecuteAction : public Action {
 public:
   ExecuteAction( const std::string& executable );
 
@@ -22,7 +22,7 @@ protected:
   std::string executable_path_;
 };
 
-class RequestPeerListAction : public MessageAction {
+class RequestPeerListAction : public Action {
 public:
   RequestPeerListAction( Peers& peers );
 
@@ -33,7 +33,7 @@ protected:
   Peers& peers_;
 };
 
-class PeerListAction : public MessageAction {
+class PeerListAction : public Action {
 public:
   PeerListAction( Peers& peers );
 
@@ -44,14 +44,14 @@ protected:
   Peers& peers_;
 };
 
-class CmdAddHostAction : public MessageAction {
+class CmdAddHostAction : public Action {
 public:
   CmdAddHostAction();
 
   bool process( const ip_t& sender, const std::string& sender_key, const PInnerContainer& container );
 };
 
-class CmdSendAction : public MessageAction {
+class CmdSendAction : public Action {
 public:
   CmdSendAction();
 

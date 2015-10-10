@@ -1,8 +1,9 @@
+#include "action.hpp"
+
 #include  <cstdlib>
-#include "message_action.hpp"
 #include "server.hpp"
 
-MessageAction::~MessageAction()
+Action::~Action()
 {
 }
 
