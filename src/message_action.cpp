@@ -68,7 +68,7 @@ CmdAddHostAction::CmdAddHostAction()
 
 bool CmdAddHostAction::process( const ip_t& sender, const std::string& sender_key, const PInnerContainer& container )
 {
-  PAddHost ah;
+  PCmdAddHost ah;
   ah.ParseFromString( container.message() );
   ip_t::bytes_type ipbytes;
   for(auto j=0; j<ipbytes.size(); ++j) {
@@ -76,5 +76,26 @@ bool CmdAddHostAction::process( const ip_t& sender, const std::string& sender_ke
   }
   ip_t IP(ipbytes);
   Server::getInstance().sendPing(IP);
+  return true;
+}
+
+CmdSendAction::CmdSendAction()
+{
+}
+
+bool CmdSendAction::process( const ip_t& sender, const std::string& sender_key, const PInnerContainer& container )
+{
+  PCmdSend s;
+  s.ParseFromString( container.message() );
+  if(s.has_receiver()) {
+    try {
+      Server::getInstance().sendMessageTo(s.cont_to_send(), s.receiver());
+    } catch (...) {
+      Logger::error("Message could not be send to Receiver: "+s.receiver());
+      return false;
+    }
+  } else {
+    Server::getInstance().broadcastMessage(s.cont_to_send());
+  }
   return true;
 }

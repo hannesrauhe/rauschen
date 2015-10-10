@@ -9,6 +9,7 @@ public:
     registerNewType( MTYPE_REQUEST_PEER_LIST, new RequestPeerListAction(peers_) );
     registerNewType( MTYPE_PEER_LIST, new PeerListAction(peers_) );
     registerNewType( MTYPE_CMD_ADD_HOST, new CmdAddHostAction() );
+    registerNewType( MTYPE_CMD_SEND, new CmdSendAction() );
   }
 
   void registerNewType(const std::string& mtype, MessageAction* action) {
@@ -33,7 +34,7 @@ public:
 
   bool dispatch( const ip_t& sender, const std::string& sender_key, const PInnerContainer& container ) {
     Server& server_ = Server::getInstance();
-    Logger::info("Signed message with from "+sender.to_string() +"/"+Crypto::getFingerprint(sender_key)+" received: "+container.DebugString());
+    Logger::info("Signed message from "+sender.to_string() +"/"+Crypto::getFingerprint(sender_key)+" received: "+container.DebugString());
     if( peers_.add(sender, sender_key) ) {
       PInnerContainer cont;
       cont.set_type(MTYPE_REQUEST_PEER_LIST);
@@ -59,6 +60,10 @@ protected:
 
     auto success = false;
     for( auto& selected_action : action->second) {
+      if(sender_key==Server::getInstance().getCrypto().getPubKey() && !selected_action->processMyself()) {
+        Logger::debug("Will not process message because it came from myself");
+        continue;
+      }
       success = success || selected_action->process(sender, sender_key, container);
     }
     return success;

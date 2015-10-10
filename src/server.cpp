@@ -119,7 +119,7 @@ void Server::startReceive()
     }
     else
     {
-//      try
+      try
       {
         auto sender = remote_endpoint_.address().to_v6();
         if(remote_endpoint_.address().is_loopback() ||
@@ -136,12 +136,12 @@ void Server::startReceive()
           outer_container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
           startReceive();
 
-          if ( outer_container.has_pubkey() && crypto_.getPubKey() == outer_container.pubkey() )
-          { //record my own IP but ignore the message itself
-            Logger::debug( "Message from myself" );
-            peers_.add(sender, crypto_.getPubKey() );
-            return;
-          }
+//          if ( outer_container.has_pubkey() && crypto_.getPubKey() == outer_container.pubkey() )
+//          { //record my own IP but ignore the message itself
+//            Logger::debug( "Message from myself" );
+//            peers_.add(sender, crypto_.getPubKey() );
+//            return;
+//          }
 
           std::unique_ptr<PInnerContainer> container;
           if(crypto_.checkAndEncrypt(outer_container, container))
@@ -157,11 +157,11 @@ void Server::startReceive()
           }
         }
       }
-//      catch (const std::exception& e)
-//      {
-//        Logger::error("Error when receiving message");
-//        Logger::error(e.what());
-//      }
+      catch (const std::exception& e)
+      {
+        Logger::error("Error when receiving message");
+        Logger::error(e.what());
+      }
     }
   } );
 }

@@ -14,17 +14,10 @@ asio::io_service io_service;
 static udp::endpoint rauschend_ep(asio::ip::address::from_string("127.0.0.1"), RAUSCHEN_PORT);
 static udp::socket s(io_service, udp::endpoint(udp::v6(), 0));
 
-
-rauschen_status rauschen_add_host(const char* hostname) {
-  udp::resolver resolver(io_service);
-  udp::endpoint new_host = *resolver.resolve({udp::v6(), hostname, std::to_string(RAUSCHEN_PORT)});
-  auto new_address = new_host.address().to_v6().to_bytes();
-
+rauschen_status send_command_to_daemon(const std::string& cmd, const std::string& msg) {
   PInnerContainer cont;
-  PAddHost ah_cont;
-  ah_cont.set_ip(new_address.data(), new_address.size());
-  cont.set_type(MTYPE_CMD_ADD_HOST);
-  cont.set_message(ah_cont.SerializeAsString());
+  cont.set_type(cmd);
+  cont.set_message(msg);
 
   s.send_to(asio::buffer(cont.SerializeAsString()), rauschend_ep);
 
@@ -33,5 +26,29 @@ rauschen_status rauschen_add_host(const char* hostname) {
   size_t reply_length = s.receive_from(
       asio::buffer(reply, sizeof(reply)), sender_endpoint);
 
-  return RAUSCHEN_STATUS_OK;
+  assert(reply_length);
+  return static_cast<rauschen_status>(reply[0]);
+}
+
+extern "C" {
+rauschen_status rauschen_add_host(const char* hostname) {
+  udp::resolver resolver(io_service);
+  udp::endpoint new_host = *resolver.resolve({udp::v6(), hostname, std::to_string(RAUSCHEN_PORT)});
+  auto new_address = new_host.address().to_v6().to_bytes();
+
+  PCmdAddHost ah_cont;
+  ah_cont.set_ip(new_address.data(), new_address.size());
+  return send_command_to_daemon(MTYPE_CMD_ADD_HOST, ah_cont.SerializeAsString());
+}
+
+rauschen_status rauschen_send_message(const char* message, const char* message_type, const char* receiver) {
+  PCmdSend send_cont;
+  if(receiver!=nullptr) {
+    send_cont.set_receiver(receiver);
+  }
+  auto cont = send_cont.mutable_cont_to_send();
+  cont->set_message(message);
+  cont->set_type(message_type);
+  return send_command_to_daemon(MTYPE_CMD_SEND, send_cont.SerializeAsString());
+}
 }

@@ -17,8 +17,18 @@ target_link_libraries(rauschend cryptopp ${PROTOBUF_LIBRARIES})
 add_library(rauschen SHARED ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
 target_link_libraries(rauschen ${PROTOBUF_LIBRARIES})
 
-add_executable(rauschen-add-host tools/add_host.cpp)
+#GENERATE_EXPORT_HEADER( rauschen
+#             BASE_NAME rauschen
+#             EXPORT_MACRO_NAME rauschen_EXPORT
+#             EXPORT_FILE_NAME rauschen_Export.h
+#             STATIC_DEFINE rauschen_BUILT_AS_STATIC
+#)
+
+add_executable(rauschen-add-host tools/add_host.c)
 target_link_libraries(rauschen-add-host rauschen ${PROTOBUF_LIBRARIES})
+
+add_executable(rauschen-send-message tools/send_message.cpp)
+target_link_libraries(rauschen-send-message rauschen boost_program_options ${PROTOBUF_LIBRARIES})
 
 ##### build tests #####
 if(BUILD_TESTS)

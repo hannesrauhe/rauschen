@@ -69,10 +69,21 @@ public:
     return return_set;
   }
 
+  std::vector<std::string> getAllKeys() const {
+    std::lock_guard<std::mutex> lock(peer_lock_);
+    std::vector<std::string> return_vec(keyToIp_.size());
+    size_t i = 0;
+    for(const auto& ips : keyToIp_) {
+      return_vec[i++] = ips.first;
+    }
+    return return_vec;
+  }
+
   size_t size() const {
     std::lock_guard<std::mutex> lock(peer_lock_);
     return keyToIp_.size();
   }
+
 
 protected:
   mutable std::mutex peer_lock_;

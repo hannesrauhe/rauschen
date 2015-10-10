@@ -27,12 +27,12 @@ message PPeerList {
 
 /* API 2 daemon types */
 //__send:
-message PSendCommand {
+message PCmdSend {
   optional string receiver = 1;
   optional PInnerContainer cont_to_send = 2;
 }
 
 //__addHost
-message PAddHost {
+message PCmdAddHost {
   optional bytes ip = 1;
 }

@@ -53,10 +53,11 @@ public:
       sendMessageToIP( cont, single_ip );
     }
   }
+
   void broadcastMessage(const PInnerContainer& msg) {
-//    auto ip = peers_.getIpByPubKey(receiver);
-//    auto cont = createEncryptedContainer(msg, receiver);
-//    sendMessageToIP( cont, ip );
+    for(const auto& p : peers_.getAllKeys()) {
+      sendMessageTo(msg, p);
+    }
   }
 
   void broadcastPing(bool use_multicast = false) {
