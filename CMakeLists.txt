@@ -2,10 +2,6 @@ cmake_minimum_required( VERSION 2.8.6 )
 
 project(Rauschen)
 
-find_package(Threads)
-
-message(${CMAKE_THREAD_LIBS_INIT}) 
-
 set(CMAKE_CXX_STANDARD 11)
 if (NOT MSVC)
   include(CheckCXXCompilerFlag)
