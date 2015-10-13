@@ -21,9 +21,9 @@ Server::Server()
       socket_.set_option( asio::ip::multicast::join_group( multicast_address_, RAUSCHEN_PORT ) );
       Logger::info( std::string( "Joined Multicast Group " ) + multicast_address_.to_string() );
     }
-    catch ( ... )
+    catch ( const std::system_error& e)
     {
-      Logger::warn( "Cannot join multicast group - disabling." );
+      Logger::warn( "Cannot join multicast group - disabling. Error was: "+std::string(e.what()) );
       multicast_address_ = ip_t::any();
     }
   }
@@ -61,51 +61,17 @@ void Server::run()
 
 void Server::runMaintenance()
 {
-  if ( peers_.empty() )
+  if ( multicast_address_.is_multicast_site_local() )
   {
-    if ( multicast_address_.is_multicast_site_local() )
-    {
-      Logger::debug( "Multicast" );
-      sendMessageToIP( crypto_.createEncryptedContainer(), multicast_address_ );
-    }
-    else
-    {
-      Logger::debug( "No site local multicast address specified - skipping multicast" );
-    }
-    std::ifstream ip_f( RAUSCHEN_HOSTS_FILE );
-    if ( ip_f.good() )
-    {
-      Logger::debug( "Contacting previously known peers" );
-      std::string host;
-      std::getline( ip_f, host );
-      ip_t host_address;
-      try
-      {
-        host_address = ip_t::from_string( host );
-        sendMessageToIP( crypto_.createEncryptedContainer(), host_address );
-      }
-      catch ( ... )
-      {
-        asio::ip::udp::resolver r( io_service_ );
-        asio::ip::udp::resolver::query q( host, "" );
-        asio::ip::udp::resolver::iterator end; // End marker.
-        auto it = r.resolve( q );
-        while ( it != end )
-        {
-          auto h_address = it->endpoint().address();
-          if ( h_address.is_v6() )
-          {
-            sendMessageToIP( crypto_.createEncryptedContainer(), h_address.to_v6() );
-          }
-          it++;
-        }
-      }
-    }
-    else
-    {
-      Logger::debug( "Cannot open host file - no previously known hosts to contact." );
-    }
+    Logger::debug( "Multicast" );
+    sendMessageToIP( crypto_.createEncryptedContainer(), multicast_address_ );
   }
+  else
+  {
+    Logger::debug( "No site local multicast address specified - skipping multicast" );
+  }
+  pingHostsFromHostsFile();
+
 }
 
 void Server::startReceive()
@@ -164,4 +130,50 @@ void Server::startReceive()
       }
     }
   } );
+}
+
+void Server::pingHostsFromHostsFile()
+{
+  std::ifstream ip_f( RAUSCHEN_HOSTS_FILE );
+  if ( !ip_f.good() )
+  {
+    Logger::debug( "Cannot open hosts file - no previously known hosts to contact." );
+    return;
+  }
+
+  Logger::debug( "Contacting previously known peers" );
+  std::string host;
+  while ( std::getline( ip_f, host ) )
+  {
+    ip_t host_address;
+    try
+    {
+      host_address = ip_t::from_string( host );
+      sendMessageToIP( crypto_.createEncryptedContainer(), host_address );
+    }
+    catch ( ... )
+    {
+      try
+      {
+        asio::ip::udp::resolver r( io_service_ );
+        asio::ip::udp::resolver::query q( host, "" );
+        asio::ip::udp::resolver::iterator end; // End marker.
+        auto it = r.resolve( q );
+        while ( it != end )
+        {
+          auto h_address = it->endpoint().address();
+          if ( h_address.is_v6() )
+          {
+            sendMessageToIP( crypto_.createEncryptedContainer(), h_address.to_v6() );
+          }
+          it++;
+        }
+      }
+      catch ( ... )
+      {
+        Logger::debug( "Could not resolve host name \"" + host + "\" from hosts file." );
+        continue;
+      }
+    }
+  }
 }

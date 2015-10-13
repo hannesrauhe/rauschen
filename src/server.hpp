@@ -108,6 +108,8 @@ protected:
         } );
   }
 
+  void pingHostsFromHostsFile();
+
   bool running = false;
   udp::endpoint remote_endpoint_;
   std::array<char, MAX_MSG_LEN> recv_buffer_;
