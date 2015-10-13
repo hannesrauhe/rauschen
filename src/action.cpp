@@ -39,7 +39,7 @@ bool PeerListAction::process( const ip_t& sender, const std::string& sender_key,
   Logger::debug("Received peer list with "+std::to_string(list.ip_size())+ " IPs");
   for(auto i = 0; i<list.ip_size(); ++i) {
     ip_t::bytes_type ipbytes;
-    for(auto j=0; j<ipbytes.size(); ++j) {
+    for(size_t j=0; j<ipbytes.size(); ++j) {
       ipbytes[j] = list.ip(i)[j];
     }
     ip_t IP(ipbytes);
@@ -72,7 +72,7 @@ bool CmdAddHostAction::process( const ip_t& sender, const std::string& sender_ke
   PCmdAddHost ah;
   ah.ParseFromString( container.message() );
   ip_t::bytes_type ipbytes;
-  for(auto j=0; j<ipbytes.size(); ++j) {
+  for(size_t j=0; j<ipbytes.size(); ++j) {
     ipbytes[j] = ah.ip()[j];
   }
   ip_t IP(ipbytes);

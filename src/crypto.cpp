@@ -1,5 +1,9 @@
 #include "crypto.hpp"
 #include "common.hpp"
+#include "logger.hpp"
+
+#include <ctime>
+#include <chrono>
 
 void Crypto::generate( const std::string& fname )
 {
@@ -118,6 +122,7 @@ bool Crypto::verify( const std::string& data, const std::string& signature_str, 
   }
   catch ( const CryptoPP::SignatureVerificationFilter::SignatureVerificationFailed& e )
   {
+	Logger::error("Verfication failed: " + e.GetWhat());
     return false;
   }
   return true;

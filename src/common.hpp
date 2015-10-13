@@ -1,5 +1,9 @@
 #pragma once
 
+#if _MSC_VER && !__INTEL_COMPILER
+#define _WIN32_WINNT 0x0501
+#endif
+
 #define ASIO_STANDALONE
 #define ASIO_HAS_STD_ADDRESSOF
 #define ASIO_HAS_STD_ARRAY
