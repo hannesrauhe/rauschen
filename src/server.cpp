@@ -18,7 +18,7 @@ Server::Server()
   {
     try
     {
-      socket_.set_option( asio::ip::multicast::join_group( multicast_address_, RAUSCHEN_PORT ) );
+      socket_.set_option( asio::ip::multicast::join_group( multicast_address_ ) );
       Logger::info( std::string( "Joined Multicast Group " ) + multicast_address_.to_string() );
     }
     catch ( const std::system_error& e)
@@ -44,10 +44,16 @@ void Server::run()
   running = true;
   std::thread maintenance( [&, this]()
   {
+    auto last = std::chrono::system_clock::now()-std::chrono::seconds(RAUSCHEN_BROADCAST_INTERVAL);
     while(running)
     {
-      runMaintenance();
-      std::this_thread::sleep_for(std::chrono::seconds(RAUSCHEN_BROADCAST_INTERVAL));
+      std::chrono::duration<double> diff = std::chrono::system_clock::now()-last;
+      if(diff.count()>RAUSCHEN_BROADCAST_INTERVAL)
+      {
+        last = std::chrono::system_clock::now();
+        runMaintenance();
+      }
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     }
   } );
 
