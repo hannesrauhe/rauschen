@@ -93,14 +93,16 @@ void Server::startReceive()
     {
       try
       {
-        auto sender = remote_endpoint_.address().to_v6();
+        //copy necessary - after calling startReceive class member may be overwritten:
+        auto remote_endpoint = remote_endpoint_;
+        auto sender_ip = remote_endpoint_.address().to_v6();
         if(remote_endpoint_.address().is_loopback() ||
-            (sender.is_v4_mapped() && sender.to_v4().is_loopback()))
+            (sender_ip.is_v4_mapped() && sender_ip.to_v4().is_loopback()))
         {
           PInnerContainer container;
           container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
           startReceive();
-          dispatcher_->executeCommand(container, remote_endpoint_);
+          dispatcher_->executeCommand(container, remote_endpoint);
         }
         else
         {
@@ -120,12 +122,12 @@ void Server::startReceive()
           {
             if(container==nullptr) {
               //just a ping
-              sendMessageTo( PInnerContainer(), outer_container.pubkey(), sender );
+              sendMessageTo( PInnerContainer(), outer_container.pubkey(), sender_ip );
             } else {
-              dispatcher_->dispatch(sender, outer_container.pubkey(), *container);
+              dispatcher_->dispatch(remote_endpoint, outer_container.pubkey(), *container);
             }
           } else {
-            Logger::debug( "Received invalid message from " + sender.to_string() );
+            Logger::debug( "Received invalid message from " + sender_ip.to_string() );
           }
         }
       }

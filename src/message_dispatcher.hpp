@@ -1,6 +1,7 @@
 #pragma once
 
 #include "action.hpp"
+#include "api_actions.hpp"
 #include "server.hpp"
 
 class MessageDispatcher {
@@ -21,8 +22,7 @@ public:
     Server& server_ = Server::getInstance();
     if ( container.IsInitialized() && container.has_type())
     {
-      int8_t status = findAndExecuteAction(ip_t::loopback(), "", container) ? 0 : 1;
-      server_.sendAPIStatusResponse(status, ep);
+      findAndExecuteAction(ep, "", container);
     }
     else
     {
@@ -31,13 +31,14 @@ public:
     }
   }
 
-  bool dispatch( const ip_t& sender, const std::string& sender_key, const PInnerContainer& container ) {
+  bool dispatch( const udp::endpoint& endpoint, const std::string& sender_key, const PInnerContainer& container ) {
+    auto sender_ip = endpoint.address().to_v6();
     Server& server_ = Server::getInstance();
-    Logger::info("Signed message from "+sender.to_string() +"/"+Crypto::getFingerprint(sender_key)+" received: "+container.DebugString());
-    if( peers_.add(sender, sender_key) ) {
+    Logger::info("Signed message from "+sender_ip.to_string() +"/"+Crypto::getFingerprint(sender_key)+" received: "+container.DebugString());
+    if( peers_.add(sender_ip, sender_key) ) {
       PInnerContainer cont;
       cont.set_type(MTYPE_REQUEST_PEER_LIST);
-      server_.sendMessageTo(cont, sender_key, sender);
+      server_.sendMessageTo(cont, sender_key, sender_ip);
     }
     auto mtype = container.type();
     if(mtype.length()>=2 && mtype[0]=='_' && mtype[1]=='_') {
@@ -45,11 +46,11 @@ public:
       return false;
     }
 
-    return findAndExecuteAction( sender, sender_key, container);
+    return findAndExecuteAction( endpoint, sender_key, container);
   }
 
 protected:
-  bool findAndExecuteAction( const ip_t& sender, const std::string& sender_key, const PInnerContainer& container ) {
+  bool findAndExecuteAction( const udp::endpoint& endpoint, const std::string& sender_key, const PInnerContainer& container ) {
     auto mtype = container.type();
     auto action = actions_.find(mtype);
     if(action==actions_.end()) {
@@ -63,7 +64,7 @@ protected:
         Logger::debug("Will not process message because it came from myself");
         continue;
       }
-      success = success || selected_action->process(sender, sender_key, container);
+      success = success || selected_action->process(endpoint, sender_key, container);
     }
     return success;
   }

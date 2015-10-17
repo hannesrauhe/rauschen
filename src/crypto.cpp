@@ -42,7 +42,7 @@ bool Crypto::checkAndEncrypt( const PEncryptedContainer& outer, std::unique_ptr<
   }
   if ( !outer.has_container() || !outer.has_sym_key() || !outer.has_sym_iv() )
   {
-    Logger::debug( "Message was a ping" );
+    Logger::debug( "Received a ping" );
     inner_container.reset();
     return true;
   }

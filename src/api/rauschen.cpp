@@ -51,4 +51,25 @@ rauschen_status rauschen_send_message(const char* message, const char* message_t
   cont->set_type(message_type);
   return send_command_to_daemon(MTYPE_CMD_SEND, send_cont.SerializeAsString());
 }
+
+rauschen_handle_t* rauschen_register_message_handler( const char* message_type )
+{
+  return nullptr;
+}
+
+rauschen_message_t* rauschen_get_next_message( const rauschen_handle_t* handle )
+{
+  return nullptr;
+}
+
+rauschen_status rauschen_free_message( rauschen_message_t* message )
+{
+  return RAUSCHEN_STATUS_OK;
+}
+
+rauschen_status rauschen_unregister_message_handler( rauschen_handle_t* handle )
+{
+  return RAUSCHEN_STATUS_OK;
+}
+
 }

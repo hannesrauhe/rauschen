@@ -8,7 +8,8 @@ TEST(ActionTest, Execute) {
   cont.set_type("text");
   cont.set_message("test message");
   ExecuteAction action("notify-send");
-  action.process(ip_t::any(), "some key", cont);
+  asio::ip::udp::endpoint ep(ip_t::any(),0);
+  action.process(ep, "some key", cont);
 }
 
 TEST(DispatcherTest, General) {

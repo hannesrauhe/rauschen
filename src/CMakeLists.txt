@@ -5,6 +5,7 @@ set(RAUSCHEN_CPP_FILES
   server.cpp
   crypto.cpp
   action.cpp
+  api_actions.cpp
 )
 
 set(RAUSCHEN_API_FILES
@@ -30,6 +31,9 @@ target_link_libraries(rauschen-add-host rauschen ${PROTOBUF_LIBRARIES})
 add_executable(rauschen-send-message tools/send_message.cpp)
 target_link_libraries(rauschen-send-message rauschen boost_program_options ${PROTOBUF_LIBRARIES})
 
+add_executable(rauschen-print-messages tools/print_messages.cpp)
+target_link_libraries(rauschen-print-messages rauschen boost_program_options ${PROTOBUF_LIBRARIES})
+
 ##### build tests #####
 if(BUILD_TESTS)
   set(RAUSCHEN_TEST_FILES
@@ -37,6 +41,7 @@ if(BUILD_TESTS)
     test/test_dispatcher.cpp
     server.cpp
     action.cpp
+    api_actions.cpp
     crypto.cpp
   )
   add_executable(test_rauschen ${RAUSCHEN_TEST_FILES} ${PROTO_SRCS})
