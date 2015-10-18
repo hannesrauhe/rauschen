@@ -12,16 +12,6 @@ public:
   virtual bool processMyself() {  return true;  }
 };
 
-class ExecuteAction : public Action {
-public:
-  ExecuteAction( const std::string& executable );
-
-  bool process( const asio::ip::udp::endpoint& endpoint, const std::string& sender_key, const PInnerContainer& container ) override;
-
-protected:
-  const std::string executable_path_;
-};
-
 class RegisteredHandlerAction : public Action {
 public:
   RegisteredHandlerAction( const asio::ip::udp::endpoint& endpoint );
@@ -30,7 +20,7 @@ public:
       const PInnerContainer& container ) override;
 
 protected:
-  const asio::ip::udp::endpoint endpoint_;
+  const asio::ip::udp::endpoint appl_endpoint_;
 };
 
 class RequestPeerListAction : public Action {

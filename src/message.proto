@@ -29,8 +29,13 @@ message PPeerList {
 
 /* API 2 daemon types */
 message PApiResponse {
-  optional int32 status = 1;
-  optional int32 handle = 2;
+  message PReceivedMessage {
+    optional string sender = 1;
+    optional PInnerContainer received_cont = 2;
+  }
+  optional int32 status = 3;
+  optional int32 handle = 4;
+  optional PReceivedMessage received_message = 5;
 }
 
 //__send:

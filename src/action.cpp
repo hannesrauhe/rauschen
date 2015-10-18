@@ -50,26 +50,20 @@ bool PeerListAction::process( const asio::ip::udp::endpoint& endpoint, const std
   return true;
 }
 
-ExecuteAction::ExecuteAction( const std::string& executable )
-    : executable_path_( executable )
-{
-}
-
-bool ExecuteAction::process( const asio::ip::udp::endpoint& endpoint, const std::string& sender_key, const PInnerContainer& msg)
-{
-  auto cmd = executable_path_;
-  cmd += " "+msg.message();
-  auto ret = std::system(cmd.c_str());
-  return (ret==0);
-}
-
 RegisteredHandlerAction::RegisteredHandlerAction( const asio::ip::udp::endpoint& endpoint )
-    : endpoint_( endpoint )
+    : appl_endpoint_( endpoint )
 {
 }
 
 bool RegisteredHandlerAction::process( const asio::ip::udp::endpoint& endpoint, const std::string& sender_key,
     const PInnerContainer& container )
 {
-  return false;
+  PApiResponse forward_message;
+  auto r_message = forward_message.mutable_received_message();
+  r_message->set_sender(Crypto::getFingerprint(sender_key));
+  auto inner_cont = r_message->mutable_received_cont();
+  *inner_cont = container;
+
+  Server::getInstance().sendApiResponse(forward_message, appl_endpoint_);
+  return true;
 }
