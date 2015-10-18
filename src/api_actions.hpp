@@ -33,3 +33,12 @@ public:
 protected:
   bool process( const PInnerContainer& container ) override;
 };
+
+class CmdRegisterHandlerAction : public Action {
+public:
+  CmdRegisterHandlerAction();
+
+protected:
+  bool process( const asio::ip::udp::endpoint& endpoint, const std::string& sender_key,
+      const PInnerContainer& container ) override;
+};

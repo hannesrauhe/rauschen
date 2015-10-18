@@ -19,16 +19,18 @@ public:
   bool process( const asio::ip::udp::endpoint& endpoint, const std::string& sender_key, const PInnerContainer& container ) override;
 
 protected:
-  std::string executable_path_;
+  const std::string executable_path_;
 };
 
 class RegisteredHandlerAction : public Action {
 public:
-  RegisteredHandlerAction(  );
+  RegisteredHandlerAction( const asio::ip::udp::endpoint& endpoint );
 
-  bool process( const asio::ip::udp::endpoint& endpoint, const std::string& sender_key, const PInnerContainer& container ) override;
+  bool process( const asio::ip::udp::endpoint& endpoint, const std::string& sender_key,
+      const PInnerContainer& container ) override;
 
 protected:
+  const asio::ip::udp::endpoint endpoint_;
 };
 
 class RequestPeerListAction : public Action {

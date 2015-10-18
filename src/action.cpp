@@ -62,3 +62,14 @@ bool ExecuteAction::process( const asio::ip::udp::endpoint& endpoint, const std:
   auto ret = std::system(cmd.c_str());
   return (ret==0);
 }
+
+RegisteredHandlerAction::RegisteredHandlerAction( const asio::ip::udp::endpoint& endpoint )
+    : endpoint_( endpoint )
+{
+}
+
+bool RegisteredHandlerAction::process( const asio::ip::udp::endpoint& endpoint, const std::string& sender_key,
+    const PInnerContainer& container )
+{
+  return false;
+}

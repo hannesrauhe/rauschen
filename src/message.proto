@@ -38,3 +38,8 @@ message PCmdSend {
 message PCmdAddHost {
   optional bytes ip = 1;
 }
+
+//__registerHandler
+message PCmdRegisterHandler {
+  optional string mtype = 1;
+}

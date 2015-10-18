@@ -1,7 +1,14 @@
 #include "server.hpp"
 #include "message_dispatcher.hpp"
+#include "logger.hpp"
 
 #include <csignal>
+#include <ctime>
+#include <iostream>
+#include <string>
+#include <memory>
+#include <thread>
+#include <functional>
 
 Server::Server()
     : socket_( io_service_ ),
@@ -184,4 +191,66 @@ void Server::pingHostsFromHostsFile()
       }
     }
   }
+}
+
+void Server::broadcastMessage( const PInnerContainer& msg )
+{
+  for ( const auto& p : peers_.getAllKeys() )
+  {
+    sendMessageTo( msg, p );
+  }
+}
+
+void Server::broadcastPing( bool use_multicast )
+{
+  if ( use_multicast )
+  {
+    sendMessageToIP( crypto_.createEncryptedContainer(), multicast_address_ );
+  }
+  else
+  {
+    auto cont = crypto_.createEncryptedContainer();
+    for ( const auto& ip : peers_.getAllIPs() )
+    {
+      sendMessageToIP( cont, ip );
+    }
+  }
+}
+
+void Server::sendPing( ip_t receiver )
+{
+  auto cont = crypto_.createEncryptedContainer();
+  sendMessageToIP( cont, receiver );
+}
+
+void Server::sendMessageTo( const PInnerContainer& msg, const std::string& receiver, ip_t single_ip )
+{
+  auto cont = crypto_.createEncryptedContainer( receiver, msg );
+  if ( single_ip == ip_t::any() )
+  {
+    auto ips = peers_.getIpByPubKey( receiver );
+    for ( const auto& ip : ips )
+    {
+      sendMessageToIP( cont, ip );
+    }
+  }
+  else
+  {
+    sendMessageToIP( cont, single_ip );
+  }
+}
+
+void Server::sendAPIStatusResponse( int8_t status, const asio::ip::udp::endpoint& ep )
+{
+  socket_.async_send_to( asio::buffer( &status, 1 ), ep, [this](std::error_code /*ec*/, std::size_t /*bytes_sent*/)
+  {} );
+}
+
+void Server::sendMessageToIP( const PEncryptedContainer& message, const asio::ip::address_v6& ip )
+{
+  Logger::debug( "Contacting " + ip.to_string() );
+  socket_.async_send_to( asio::buffer( message.SerializeAsString() ), asio::ip::udp::endpoint( ip, RAUSCHEN_PORT ),
+      [this](std::error_code /*ec*/, std::size_t /*bytes_sent*/)
+      {
+      } );
 }

@@ -6,15 +6,46 @@
 
 class MessageDispatcher {
 public:
-  MessageDispatcher(Peers& peers) : peers_(peers) {
-    registerNewType( MTYPE_REQUEST_PEER_LIST, new RequestPeerListAction(peers_) );
-    registerNewType( MTYPE_PEER_LIST, new PeerListAction(peers_) );
-    registerNewType( MTYPE_CMD_ADD_HOST, new CmdAddHostAction() );
-    registerNewType( MTYPE_CMD_SEND, new CmdSendAction() );
+  MessageDispatcher(Peers& peers) : peers_(peers), handle_producer_(0) {
+    registerNewHandler( MTYPE_REQUEST_PEER_LIST, std::make_shared<RequestPeerListAction>( peers_ ) );
+    registerNewHandler( MTYPE_PEER_LIST, std::make_shared<PeerListAction>(peers_) );
+    registerNewHandler( MTYPE_CMD_ADD_HOST, std::make_shared<CmdAddHostAction>() );
+    registerNewHandler( MTYPE_CMD_SEND, std::make_shared<CmdSendAction>() );
+    registerNewHandler( MTYPE_CMD_REGISTER_HANDLER, std::make_shared<CmdRegisterHandlerAction>() );
   }
 
-  void registerNewType(const std::string& mtype, Action* action) {
+  int registerNewHandler(const std::string& mtype, std::shared_ptr<Action> action) {
+    std::lock_guard<std::mutex> lck(actions_lock_);
+
+    int handle = handle_producer_++;
     actions_[mtype].push_back(action);
+    actions_by_handle_[handle] = action;
+    Logger::debug("New message type registered: "+ mtype + ", Handle: "+std::to_string(handle));
+    return handle;
+  }
+
+  bool unregisterHandler(int handle) {
+    std::lock_guard<std::mutex> lck(actions_lock_);
+
+    auto action_it = actions_by_handle_.find(handle);
+    if(action_it==actions_by_handle_.end()) {
+      return false;
+    }
+    auto action = action_it->second;
+
+    for(auto& actions_vector_pair : actions_) {
+      auto& actions_vector = actions_vector_pair.second;
+      for(auto it = actions_vector.begin(); it!= actions_vector.end(); ++it) {
+        if(action == *it) {
+          actions_vector.erase(it);
+          actions_by_handle_.erase(action_it);
+          Logger::debug("Handler unregistered: "+std::to_string(handle) );
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   void executeCommand( const PInnerContainer& container, const asio::ip::udp::endpoint& ep )
@@ -51,15 +82,20 @@ public:
 
 protected:
   bool findAndExecuteAction( const udp::endpoint& endpoint, const std::string& sender_key, const PInnerContainer& container ) {
-    auto mtype = container.type();
-    auto action = actions_.find(mtype);
-    if(action==actions_.end()) {
-      Logger::info("Unknown message type: "+container.type());
-      return false;
+    std::vector< std::shared_ptr<Action> > selected_actions;
+    {
+      std::lock_guard<std::mutex> lck(actions_lock_);
+      auto mtype = container.type();
+      auto action = actions_.find(mtype);
+      if(action==actions_.end()) {
+        Logger::info("Unknown message type: "+container.type());
+        return false;
+      }
+      selected_actions = action->second;
     }
 
     auto success = false;
-    for( auto& selected_action : action->second) {
+    for( auto& selected_action : selected_actions) {
       if(sender_key==Server::getInstance().getCrypto().getPubKey() && !selected_action->processMyself()) {
         Logger::debug("Will not process message because it came from myself");
         continue;
@@ -70,5 +106,9 @@ protected:
   }
 protected:
   Peers& peers_;
-  std::unordered_map<std::string, std::vector<Action*> > actions_;
+
+  std::unordered_map<std::string, std::vector< std::shared_ptr<Action> > > actions_;
+  std::unordered_map< int, std::shared_ptr<Action> > actions_by_handle_;
+  mutable std::mutex actions_lock_;
+  int handle_producer_;
 };

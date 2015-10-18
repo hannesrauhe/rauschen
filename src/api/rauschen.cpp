@@ -54,7 +54,18 @@ rauschen_status rauschen_send_message(const char* message, const char* message_t
 
 rauschen_handle_t* rauschen_register_message_handler( const char* message_type )
 {
-  return nullptr;
+  PCmdRegisterHandler send_cont;
+  if(message_type==nullptr) {
+    return nullptr;
+  }
+  send_cont.set_mtype(message_type);
+  if( RAUSCHEN_STATUS_OK != send_command_to_daemon(MTYPE_CMD_REGISTER_HANDLER, send_cont.SerializeAsString())) {
+    return nullptr;
+  } else {
+    auto r = new rauschen_handle_t();
+    r->num = 1;
+    return r;
+  }
 }
 
 rauschen_message_t* rauschen_get_next_message( const rauschen_handle_t* handle )
@@ -69,6 +80,9 @@ rauschen_status rauschen_free_message( rauschen_message_t* message )
 
 rauschen_status rauschen_unregister_message_handler( rauschen_handle_t* handle )
 {
+  if(handle) {
+    delete handle;
+  }
   return RAUSCHEN_STATUS_OK;
 }
 

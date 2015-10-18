@@ -39,7 +39,7 @@ if(BUILD_TESTS)
   set(RAUSCHEN_TEST_FILES
     test/test_crypto.cpp
     test/test_dispatcher.cpp
-    server.cpp
+    test/fake_server.cpp
     action.cpp
     api_actions.cpp
     crypto.cpp

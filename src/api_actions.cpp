@@ -5,6 +5,7 @@
 
 #include "api_actions.hpp"
 #include "server.hpp"
+#include "message_dispatcher.hpp"
 
 ReturnsStatusAction::ReturnsStatusAction()
 {
@@ -54,5 +55,22 @@ bool CmdSendAction::process( const PInnerContainer& container )
   } else {
     Server::getInstance().broadcastMessage(s.cont_to_send());
   }
+  return true;
+}
+
+CmdRegisterHandlerAction::CmdRegisterHandlerAction()
+{
+}
+
+bool CmdRegisterHandlerAction::process( const asio::ip::udp::endpoint& endpoint, const std::string& sender_key,
+    const PInnerContainer& container )
+{
+  auto& server = Server::getInstance();
+  auto dispatcher = server.getDispatcher();
+  PCmdRegisterHandler s;
+  s.ParseFromString( container.message() );
+  auto handle = dispatcher->registerNewHandler( s.mtype(), std::make_shared<RegisteredHandlerAction>( endpoint ) );
+
+  server.sendAPIStatusResponse(0, endpoint);
   return true;
 }
