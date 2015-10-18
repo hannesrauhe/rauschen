@@ -240,10 +240,13 @@ void Server::sendMessageTo( const PInnerContainer& msg, const std::string& recei
   }
 }
 
-void Server::sendAPIStatusResponse( int8_t status, const asio::ip::udp::endpoint& ep )
+void Server::sendApiResponse(const PApiResponse& resp, const asio::ip::udp::endpoint& ep)
 {
-  socket_.async_send_to( asio::buffer( &status, 1 ), ep, [this](std::error_code /*ec*/, std::size_t /*bytes_sent*/)
-  {} );
+  Logger::debug("Sending Packet to application on port "+ std::to_string(ep.port()));
+  socket_.async_send_to( asio::buffer( resp.SerializeAsString() ), ep,
+      [this](std::error_code /*ec*/, std::size_t /*bytes_sent*/)
+      {
+      } );
 }
 
 void Server::sendMessageToIP( const PEncryptedContainer& message, const asio::ip::address_v6& ip )

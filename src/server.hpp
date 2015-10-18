@@ -13,8 +13,6 @@ class MessageDispatcher;
 class Server
 {
 public:
-  const static uint32_t MAX_MSG_LEN = 32768;
-
   static Server& getInstance() {
     static Server singleton_;
     return singleton_;
@@ -57,8 +55,7 @@ public:
     return dispatcher_;
   }
 
-  void sendAPIStatusResponse(int8_t status, const asio::ip::udp::endpoint& ep);
-
+  void sendApiResponse(const PApiResponse& resp, const asio::ip::udp::endpoint& ep);
 protected:
   void sendMessageToIP( const PEncryptedContainer& message, const asio::ip::address_v6& ip );
 
@@ -66,7 +63,7 @@ protected:
 
   bool running = false;
   udp::endpoint remote_endpoint_;
-  std::array<char, MAX_MSG_LEN> recv_buffer_;
+  std::array<char, RAUSCHEN_MAX_PACKET_SIZE> recv_buffer_;
   asio::ip::address_v6 multicast_address_;
   asio::io_service io_service_;
   udp::socket socket_;

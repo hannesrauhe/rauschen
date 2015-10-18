@@ -15,8 +15,10 @@ bool ReturnsStatusAction::process( const asio::ip::udp::endpoint& endpoint, cons
     const PInnerContainer& container )
 {
   auto& server = Server::getInstance();
-  int8_t status = process(container) ? 0 : 1;
-  server.sendAPIStatusResponse(status, endpoint);
+  PApiResponse resp;
+  resp.set_status( process(container) ? 0 : 1 );
+
+  server.sendApiResponse(resp, endpoint);
   return true;
 }
 
@@ -71,6 +73,8 @@ bool CmdRegisterHandlerAction::process( const asio::ip::udp::endpoint& endpoint,
   s.ParseFromString( container.message() );
   auto handle = dispatcher->registerNewHandler( s.mtype(), std::make_shared<RegisteredHandlerAction>( endpoint ) );
 
-  server.sendAPIStatusResponse(0, endpoint);
+  PApiResponse resp;
+  resp.set_handle(handle);
+  server.sendApiResponse(resp, endpoint);
   return true;
 }

@@ -1,5 +1,5 @@
-#include "../server.hpp"
-#include "../message_dispatcher.hpp"
+#include "server.hpp"
+#include "message_dispatcher.hpp"
 
 #include <ctime>
 #include <iostream>
@@ -47,7 +47,7 @@ void Server::sendMessageTo( const PInnerContainer& msg, const std::string& recei
 {
 }
 
-void Server::sendAPIStatusResponse( int8_t status, const asio::ip::udp::endpoint& ep )
+void Server::sendApiResponse( const PApiResponse& resp, const asio::ip::udp::endpoint& ep )
 {
 }
 

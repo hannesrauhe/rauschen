@@ -7,38 +7,92 @@
 #include "../common.hpp"
 #include "../internal_commands.hpp"
 #include "message.pb.h"
+#include <array>
+#include <iostream>
+#include <thread>
+#include <boost/lockfree/queue.hpp>
 
 using asio::ip::udp;
 
-asio::io_service io_service;
-static udp::endpoint rauschend_ep(asio::ip::address::from_string("127.0.0.1"), RAUSCHEN_PORT);
-static udp::socket s(io_service, udp::endpoint(udp::v6(), 0));
+class RauschendConnector {
+public:
+  RauschendConnector()
+      : io_service_(),
+        rauschend_ep_( asio::ip::address::from_string( "127.0.0.1" ), RAUSCHEN_PORT ),
+        socket_( io_service_, udp::endpoint( udp::v6(), 0 ) )//,
+//        service_thread_([this]{io_service_.run();})
+  {
+    std::cout<<"Starting API on port "+std::to_string(socket_.local_endpoint().port())<<std::endl;
+    startReceive();
+  }
 
-rauschen_status send_command_to_daemon(const std::string& cmd, const std::string& msg) {
-  PInnerContainer cont;
-  cont.set_type(cmd);
-  cont.set_message(msg);
+  ~RauschendConnector() {
+    io_service_.stop();
+//    service_thread_.join();
+  }
 
-  s.send_to(asio::buffer(cont.SerializeAsString()), rauschend_ep);
+  void startReceive() {
+    socket_.async_receive_from( asio::buffer( recv_buffer_ ), remote_endpoint_, [this](const asio::error_code& error,
+          size_t bytes_recvd)
+      {
+        if (error)
+        {
+          std::cerr<<"Error while receiving message"<<std::endl;
+        }
+        else
+        {
+          PApiResponse container;
+          container.ParseFromArray(recv_buffer_.data(), bytes_recvd);
+          if(container.has_status()) {
+            status_queue_.push(static_cast<rauschen_status>(container.status()));
+          }
+          startReceive();
+        }
+      } );
 
-  char reply[RAUSCHEN_MAX_PACKET_SIZE];
-  udp::endpoint sender_endpoint;
-  size_t reply_length = s.receive_from(
-      asio::buffer(reply, sizeof(reply)), sender_endpoint);
+  }
 
-  assert(reply_length);
-  return static_cast<rauschen_status>(reply[0]);
-}
+  rauschen_status send_command_to_daemon(const std::string& cmd, const std::string& msg) {
+    PInnerContainer cont;
+    cont.set_type(cmd);
+    cont.set_message(msg);
+
+    socket_.send_to(asio::buffer(cont.SerializeAsString()), rauschend_ep_);
+
+    rauschen_status ret;
+    while(!status_queue_.pop(ret)) {
+      io_service_.run_one();
+    }
+    return ret;
+  }
+
+  asio::io_service& getIoService() {
+    return io_service_;
+  }
+
+protected:
+  asio::io_service io_service_;
+  const udp::endpoint rauschend_ep_;
+  udp::socket socket_;
+//  std::thread service_thread_;
+
+  udp::endpoint remote_endpoint_;
+  std::array<char, RAUSCHEN_MAX_PACKET_SIZE> recv_buffer_;
+
+  boost::lockfree::queue<rauschen_status, boost::lockfree::capacity<128> > status_queue_;
+};
+
+static RauschendConnector connector;
 
 extern "C" {
 rauschen_status rauschen_add_host(const char* hostname) {
-  udp::resolver resolver(io_service);
+  udp::resolver resolver(connector.getIoService());
   udp::endpoint new_host = *resolver.resolve({udp::v6(), hostname, std::to_string(RAUSCHEN_PORT)});
   auto new_address = new_host.address().to_v6().to_bytes();
 
   PCmdAddHost ah_cont;
   ah_cont.set_ip(new_address.data(), new_address.size());
-  return send_command_to_daemon(MTYPE_CMD_ADD_HOST, ah_cont.SerializeAsString());
+  return connector.send_command_to_daemon(MTYPE_CMD_ADD_HOST, ah_cont.SerializeAsString());
 }
 
 rauschen_status rauschen_send_message(const char* message, const char* message_type, const char* receiver) {
@@ -49,7 +103,7 @@ rauschen_status rauschen_send_message(const char* message, const char* message_t
   auto cont = send_cont.mutable_cont_to_send();
   cont->set_message(message);
   cont->set_type(message_type);
-  return send_command_to_daemon(MTYPE_CMD_SEND, send_cont.SerializeAsString());
+  return connector.send_command_to_daemon(MTYPE_CMD_SEND, send_cont.SerializeAsString());
 }
 
 rauschen_handle_t* rauschen_register_message_handler( const char* message_type )
@@ -59,7 +113,7 @@ rauschen_handle_t* rauschen_register_message_handler( const char* message_type )
     return nullptr;
   }
   send_cont.set_mtype(message_type);
-  if( RAUSCHEN_STATUS_OK != send_command_to_daemon(MTYPE_CMD_REGISTER_HANDLER, send_cont.SerializeAsString())) {
+  if( RAUSCHEN_STATUS_OK != connector.send_command_to_daemon(MTYPE_CMD_REGISTER_HANDLER, send_cont.SerializeAsString())) {
     return nullptr;
   } else {
     auto r = new rauschen_handle_t();

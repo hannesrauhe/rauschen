@@ -1,3 +1,5 @@
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS message.proto)
 
 set(RAUSCHEN_CPP_FILES
@@ -36,14 +38,14 @@ target_link_libraries(rauschen-print-messages rauschen boost_program_options ${P
 
 ##### build tests #####
 if(BUILD_TESTS)
-  set(RAUSCHEN_TEST_FILES
-    test/test_crypto.cpp
-    test/test_dispatcher.cpp
-    test/fake_server.cpp
+  set(RAUSCHEND_TEST_FILES
+    test/rauschend/test_crypto.cpp
+    test/rauschend/test_dispatcher.cpp
+    test/rauschend/fake_server.cpp
     action.cpp
     api_actions.cpp
     crypto.cpp
   )
-  add_executable(test_rauschen ${RAUSCHEN_TEST_FILES} ${PROTO_SRCS})
-  target_link_libraries(test_rauschen cryptopp gtest asan c ${PROTOBUF_LIBRARIES})
+  add_executable(test_rauschend ${RAUSCHEND_TEST_FILES} ${PROTO_SRCS})
+  target_link_libraries(test_rauschend cryptopp gtest asan c ${PROTOBUF_LIBRARIES})
 endif()

@@ -28,6 +28,11 @@ message PPeerList {
 }
 
 /* API 2 daemon types */
+message PApiResponse {
+  optional int32 status = 1;
+  optional int32 handle = 2;
+}
+
 //__send:
 message PCmdSend {
   optional string receiver = 1;
