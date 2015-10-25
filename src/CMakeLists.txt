@@ -45,7 +45,16 @@ if(BUILD_TESTS)
     action.cpp
     api_actions.cpp
     crypto.cpp
+    test/rauschend/main.cpp
   )
   add_executable(test_rauschend ${RAUSCHEND_TEST_FILES} ${PROTO_SRCS})
-  target_link_libraries(test_rauschend cryptopp gtest asan c ${PROTOBUF_LIBRARIES})
+  target_link_libraries(test_rauschend cryptopp gtest asan ${PROTOBUF_LIBRARIES})
+  
+  set(RAUSCHEN_API_TEST_FILES
+    test/api/test_connector.cpp
+    test/api/main.cpp
+  )
+  
+  add_executable(test_rauschen_api ${RAUSCHEN_API_TEST_FILES} ${PROTO_SRCS})
+  target_link_libraries(test_rauschen_api gtest gmock asan ${PROTOBUF_LIBRARIES})
 endif()

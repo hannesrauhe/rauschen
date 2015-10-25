@@ -7,6 +7,7 @@
 #define SRC_API_RAUSCHEN_H_
 
 typedef enum {
+  RAUSCHEN_STATUS_TIMEOUT = -1,
   RAUSCHEN_STATUS_OK = 0
 } rauschen_status;
 

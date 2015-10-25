@@ -31,8 +31,8 @@ int main(int ac, char* av[]) {
       return 1;
   }
 
-  std::signal(SIGINT, [] (int){ running = false; });
-  std::signal(SIGTERM, [] (int){ running = false;});
+//  std::signal(SIGINT, [] (int){ running = false; });
+//  std::signal(SIGTERM, [] (int){ running = false;});
 
   auto handl = rauschen_register_message_handler(mtype.c_str());
   while( running ) {

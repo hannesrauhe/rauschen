@@ -75,9 +75,3 @@ TEST_F(CryptoTest, ContainerEncrpytDecrypt)
   ASSERT_TRUE( c2_->checkAndEncrypt(cont, r_inner_cont) );
   ASSERT_TRUE(test_str == r_inner_cont->message());
 }
-
-int main( int argc, char **argv )
-{
-  ::testing::InitGoogleTest( &argc, argv );
-  return RUN_ALL_TESTS();
-}
