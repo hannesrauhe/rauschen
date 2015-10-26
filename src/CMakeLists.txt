@@ -36,25 +36,21 @@ target_link_libraries(rauschen-send-message rauschen boost_program_options ${PRO
 add_executable(rauschen-print-messages tools/print_messages.cpp)
 target_link_libraries(rauschen-print-messages rauschen boost_program_options ${PROTOBUF_LIBRARIES})
 
+
+### install ###
+install(TARGETS rauschend DESTINATION bin)
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Hannes Rauhe")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Peer-to-Peer messaging within a local network")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
+SET(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
+SET(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
+SET(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
+
+include(CPack)
+
+
 ##### build tests #####
 if(BUILD_TESTS)
-  set(RAUSCHEND_TEST_FILES
-    test/rauschend/test_crypto.cpp
-    test/rauschend/test_dispatcher.cpp
-    test/rauschend/fake_server.cpp
-    action.cpp
-    api_actions.cpp
-    crypto.cpp
-    test/rauschend/main.cpp
-  )
-  add_executable(test_rauschend ${RAUSCHEND_TEST_FILES} ${PROTO_SRCS})
-  target_link_libraries(test_rauschend cryptopp gtest asan ${PROTOBUF_LIBRARIES})
-  
-  set(RAUSCHEN_API_TEST_FILES
-    test/api/test_connector.cpp
-    test/api/main.cpp
-  )
-  
-  add_executable(test_rauschen_api ${RAUSCHEN_API_TEST_FILES} ${PROTO_SRCS})
-  target_link_libraries(test_rauschen_api gtest gmock asan ${PROTOBUF_LIBRARIES})
+add_subdirectory(test)
 endif()
