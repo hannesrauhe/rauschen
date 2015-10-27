@@ -1,5 +1,5 @@
-#include "server.hpp"
-#include "message_dispatcher.hpp"
+#include "daemon/server.hpp"
+#include "daemon/message_dispatcher.hpp"
 
 #include <ctime>
 #include <iostream>

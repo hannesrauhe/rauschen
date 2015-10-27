@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.8.6 )
+cmake_minimum_required( VERSION 3.2.2 )
 
 project(Rauschen)
 
@@ -47,6 +47,9 @@ endif()
 
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
+
+set(Boost_USE_STATIC_LIBS   ON)
+find_package(Boost REQUIRED program_options)
 
 if(DEFINED RAUSCHEN_DEP_DIR)
   message(INFO " Using additional dependency directory")

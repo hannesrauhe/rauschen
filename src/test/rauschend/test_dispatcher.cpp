@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "common.hpp"
-#include "message_dispatcher.hpp"
+#include "daemon/message_dispatcher.hpp"
 
 class ActionCounter : public Action {
 public:

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "common.hpp"
-#include "crypto.hpp"
+#include "daemon/crypto.hpp"
 
 class CryptoTest : public ::testing::Test {
 protected:

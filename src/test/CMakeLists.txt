@@ -3,9 +3,9 @@ set(RAUSCHEND_TEST_FILES
     rauschend/test_dispatcher.cpp
     rauschend/fake_server.cpp
     rauschend/main.cpp
-    ../action.cpp
-    ../api_actions.cpp
-    ../crypto.cpp
+    ../daemon/action.cpp
+    ../daemon/api_actions.cpp
+    ../daemon/crypto.cpp
 )
 add_executable(test_rauschend ${RAUSCHEND_TEST_FILES} ${PROTO_SRCS})
 target_link_libraries(test_rauschend cryptopp gtest asan ${PROTOBUF_LIBRARIES})
