@@ -1,7 +1,11 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <csignal>
+#include <cstdlib>
 #include "../api/rauschen.h"
+#include "logger.hpp"
+
+#include <boost/algorithm/string.hpp>
 
 namespace po = boost::program_options;
 
@@ -9,11 +13,14 @@ static bool running = true;
 
 int main(int ac, char* av[]) {
   std::string mtype;
+  std::string exec;
 
   po::options_description desc("Usage");
   desc.add_options()
       ("help", "produce help message")
-      ("type,t", po::value<std::string>(&mtype)->default_value("text"), "set message type")
+      ("type,t", po::value<std::string>(&mtype)->required(), "set message type")
+      ("execute,e", po::value<std::string>(&exec)->required(), "program to execute when message of type arrives\n"
+          "%message%, %type%, and %sender% will be replaced with actual values from the received message")
   ;
 
   po::variables_map vm;
@@ -36,9 +43,15 @@ int main(int ac, char* av[]) {
 
   auto handl = rauschen_register_message_handler(mtype.c_str());
   while( running ) {
-    auto message = rauschen_get_next_message(handl, 0);
+    auto message = rauschen_get_next_message(handl, false);
     if(message) {
-      std::cout<<"["<<message->sender<<"|"<<message->type<<"] "<<message->text<<std::endl;
+      std::string call = boost::replace_all_copy(exec, "%type%", message->type);
+      boost::replace_all(call, "%sender%", message->sender);
+      boost::replace_all(call, "%message%", message->text);
+
+      Logger::info("Executing :"+call);
+      std::system(call.c_str());
+
       rauschen_free_message(message);
     }
   }

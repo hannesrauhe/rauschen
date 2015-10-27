@@ -7,8 +7,10 @@
 #define SRC_API_RAUSCHEN_H_
 
 typedef enum {
+  RAUSCHEN_STATUS_INVALID_ARG = -2,
   RAUSCHEN_STATUS_TIMEOUT = -1,
-  RAUSCHEN_STATUS_OK = 0
+  RAUSCHEN_STATUS_OK = 0,
+  RAUSCHEN_STATUS_ERR = 1,
 } rauschen_status;
 
 typedef struct {
@@ -32,7 +34,7 @@ rauschen_status rauschen_send_message(const char* message, const char* message_t
 
 rauschen_handle_t* rauschen_register_message_handler(const char* message_type);
 
-rauschen_message_t* rauschen_get_next_message(const rauschen_handle_t* handle);
+rauschen_message_t* rauschen_get_next_message(const rauschen_handle_t* handle, int block);
 
 rauschen_status rauschen_free_message(rauschen_message_t* message);
 

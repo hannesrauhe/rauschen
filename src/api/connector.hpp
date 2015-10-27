@@ -20,7 +20,6 @@ public:
   RauschendConnector()
       : socket_()
   {
-    std::cout << "Starting API " << std::endl;
     socket_.run( //std::bind(&RauschendConnector::handleRecv, this) );
         [this](const PApiResponse& cont)
         {
@@ -51,10 +50,14 @@ public:
 
   rauschen_message_t* getNextMsg()
   {
-    rauschen_message_t* ret;
-    while ( !message_queue_.pop( ret ) )
+    rauschen_message_t* ret = nullptr;
+    auto start = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
+    while ( diff.count() < timeout_ &&
+        !message_queue_.pop( ret ) )
     {
-      std::this_thread::sleep_for(std::chrono::duration<double>(timeout_));
+      std::this_thread::sleep_for(std::chrono::duration<double>(polling_interval_));
+      diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
     }
     return ret;
   }
@@ -103,4 +106,5 @@ protected:
   boost::lockfree::queue<rauschen_message_t*, boost::lockfree::capacity<128> > message_queue_;
 
   double timeout_ = 1;
+  double polling_interval_ = 0.1;
 };

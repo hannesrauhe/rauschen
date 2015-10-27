@@ -1,6 +1,6 @@
 cmake_minimum_required( VERSION 3.2.2 )
 
-project(Rauschen)
+project(rauschen)
 
 find_package(Git)
 if(GIT_FOUND)

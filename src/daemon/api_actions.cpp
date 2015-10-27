@@ -78,3 +78,16 @@ bool CmdRegisterHandlerAction::process( const asio::ip::udp::endpoint& endpoint,
   server.sendApiResponse(resp, endpoint);
   return true;
 }
+
+CmdUnregisterHandlerAction::CmdUnregisterHandlerAction()
+{
+}
+
+bool CmdUnregisterHandlerAction::process( const PInnerContainer& container )
+{
+  auto& server = Server::getInstance();
+  auto dispatcher = server.getDispatcher();
+  PCmdUnregisterHandler s;
+  s.ParseFromString( container.message() );
+  return dispatcher->unregisterHandler(s.handle());
+}

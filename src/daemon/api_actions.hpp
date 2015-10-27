@@ -42,3 +42,11 @@ protected:
   bool process( const asio::ip::udp::endpoint& endpoint, const std::string& sender_key,
       const PInnerContainer& container ) override;
 };
+
+class CmdUnregisterHandlerAction : public ReturnsStatusAction {
+public:
+  CmdUnregisterHandlerAction();
+
+protected:
+  bool process( const PInnerContainer& container ) override;
+};

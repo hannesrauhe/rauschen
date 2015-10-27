@@ -40,6 +40,9 @@ target_link_libraries(rauschen-send-message rauschen ${Boost_LIBRARIES} ${PROTOB
 add_executable(rauschen-print-messages tools/print_messages.cpp)
 target_link_libraries(rauschen-print-messages rauschen ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
+add_executable(rauschen-execute tools/execute.cpp)
+target_link_libraries(rauschen-execute rauschen ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
+
 
 ### install ###
 set(RAUSCHEN_BINARIES
@@ -47,6 +50,7 @@ set(RAUSCHEN_BINARIES
     rauschen-add-host 
     rauschen-send-message 
     rauschen-print-messages 
+    rauschen-execute
 )
 
 install(TARGETS 

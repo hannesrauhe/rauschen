@@ -47,9 +47,16 @@ rauschen_handle_t* rauschen_register_message_handler( const char* message_type )
   return r;
 }
 
-rauschen_message_t* rauschen_get_next_message( const rauschen_handle_t* handle )
+rauschen_message_t* rauschen_get_next_message( const rauschen_handle_t* handle, int block )
 {
-  return connector.getNextMsg();
+  do {
+    auto msg = connector.getNextMsg();
+    if(msg!=nullptr) {
+      return msg;
+    }
+  } while(block);
+
+  return nullptr;
 }
 
 rauschen_status rauschen_free_message( rauschen_message_t* message )
@@ -63,11 +70,19 @@ rauschen_status rauschen_free_message( rauschen_message_t* message )
 
 rauschen_status rauschen_unregister_message_handler( rauschen_handle_t* handle )
 {
-  //TODO: unregister at daemon
+  rauschen_status ret;
   if(handle) {
-    delete handle;
+    PCmdUnregisterHandler send_cont;
+    send_cont.set_handle(handle->num);
+    auto pk = connector.sendCommandToDaemon(MTYPE_CMD_UNREGISTER_HANDLER, send_cont.SerializeAsString());
+    ret = static_cast<rauschen_status>(pk.status());
+    if(ret==RAUSCHEN_STATUS_OK) {
+      delete handle;
+    }
+  } else {
+    ret = RAUSCHEN_STATUS_INVALID_ARG;
   }
-  return RAUSCHEN_STATUS_OK;
+  return ret;
 }
 
 }

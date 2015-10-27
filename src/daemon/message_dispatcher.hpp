@@ -12,6 +12,7 @@ public:
     registerNewHandler( MTYPE_CMD_ADD_HOST, std::make_shared<CmdAddHostAction>() );
     registerNewHandler( MTYPE_CMD_SEND, std::make_shared<CmdSendAction>() );
     registerNewHandler( MTYPE_CMD_REGISTER_HANDLER, std::make_shared<CmdRegisterHandlerAction>() );
+    registerNewHandler( MTYPE_CMD_UNREGISTER_HANDLER, std::make_shared<CmdUnregisterHandlerAction>() );
   }
 
   int registerNewHandler(const std::string& mtype, std::shared_ptr<Action> action) {
