@@ -1,4 +1,9 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CRYPTOPP_INCLUDE_DIRS}
+  ${PROTOBUF_INCLUDE_DIRS}
+)
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS message.proto)
 
@@ -19,7 +24,7 @@ set(RAUSCHEN_API_FILES
 )
 
 add_executable(rauschend ${RAUSCHEND_CPP_FILES} ${PROTO_SRCS})
-target_link_libraries(rauschend cryptopp ${PROTOBUF_LIBRARIES})
+target_link_libraries(rauschend ${CRYPTOPP_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
 add_library(rauschen SHARED ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
 target_link_libraries(rauschen ${PROTOBUF_LIBRARIES})

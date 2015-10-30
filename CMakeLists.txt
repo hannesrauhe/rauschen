@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.2.2 )
+cmake_minimum_required( VERSION 3.0.2 )
 
 project(rauschen)
 
@@ -50,6 +50,8 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 set(Boost_USE_STATIC_LIBS   ON)
 find_package(Boost REQUIRED program_options)
+
+find_package(CryptoPP REQUIRED)
 
 if(DEFINED RAUSCHEN_DEP_DIR)
   message(INFO " Using additional dependency directory")
