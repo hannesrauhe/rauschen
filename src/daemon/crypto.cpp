@@ -35,6 +35,12 @@ Crypto::Crypto( const std::string& key_file_path )
 
 bool Crypto::checkAndEncrypt( const PEncryptedContainer& outer, std::unique_ptr<PInnerContainer>& inner_container )
 {
+  if ( !outer.has_version() || outer.version() > RAUSCHEN_MESSAGE_FORMAT_VERSION)
+  {
+    Logger::warn( "Message from a newer version received - skipping.");
+    inner_container.reset();
+    return true;
+  }
   if ( !outer.has_pubkey() )
   {
     Logger::debug( "invalid message: " + outer.DebugString() );

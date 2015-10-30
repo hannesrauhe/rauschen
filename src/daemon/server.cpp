@@ -128,7 +128,7 @@ void Server::startReceive()
           if(crypto_.checkAndEncrypt(outer_container, container))
           {
             if(container==nullptr) {
-              //just a ping
+              //just a ping or message from a newer version
               sendMessageTo( PInnerContainer(), outer_container.pubkey(), sender_ip );
             } else {
               dispatcher_->dispatch(remote_endpoint, outer_container.pubkey(), *container);
