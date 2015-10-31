@@ -33,31 +33,33 @@ if (NOT MSVC)
   endif()
 endif()
 
-#static runtime linking for Windows
-if(MSVC)
-  set(CMAKE_C_FLAGS_DEBUG_INIT "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
-  set(CMAKE_C_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
-  set(CMAKE_C_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
-  set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
-  set(CMAKE_CXX_FLAGS_DEBUG_INIT "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
-  set(CMAKE_CXX_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
-  set(CMAKE_CXX_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
+if(DEFINED RAUSCHEN_DEP_DIR)
+  message(STATUS " Using additional dependency directory")
+  include_directories(${RAUSCHEN_DEP_DIR}/include)
+  link_directories(${RAUSCHEN_DEP_DIR}/lib)
+  set(CRYPTOPP_ROOT_DIR ${RAUSCHEN_DEP_DIR})
+  set(ASIO_ROOT_DIR ${RAUSCHEN_DEP_DIR})
 endif()
+
+find_package(Asio REQUIRED)
+include_directories(${ASIO_INCLUDE_DIR})
 
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 set(Boost_USE_STATIC_LIBS   ON)
-find_package(Boost REQUIRED program_options)
+find_package(Boost OPTIONAL_COMPONENTS program_options)
+
+if(Boost_FOUND)
+  message(STATUS "Building command line tools")
+  include_directories(${Boost_INCLUDE_DIRS})
+  link_directories(${Boost_LIBRARY_DIRS}/lib)
+else()
+  message(STATUS "Boost not found. Building without command line tools")
+  set(NO_TOOLS 1)
+endif()
 
 find_package(CryptoPP REQUIRED)
-
-if(DEFINED RAUSCHEN_DEP_DIR)
-  message(INFO " Using additional dependency directory")
-  include_directories(${RAUSCHEN_DEP_DIR}/include)
-  link_directories(${RAUSCHEN_DEP_DIR}/lib)
-endif()
 
 # Output directory
 set(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -65,5 +67,15 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
+
+
+#force static runtime linking for Windows
+foreach(flag_var
+        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+   if(${flag_var} MATCHES "/MD")
+      string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+   endif(${flag_var} MATCHES "/MD")
+endforeach(flag_var)
 
 add_subdirectory(src)
