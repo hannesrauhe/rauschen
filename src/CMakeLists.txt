@@ -34,7 +34,11 @@ target_link_libraries(rauschend ${CRYPTOPP_LIBRARIES} ${PROTOBUF_LIBRARIES})
 #)
 
 if(BUILD_TOOLS)
-  add_library(rauschen SHARED ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
+  if(MSVC)
+    add_library(rauschen STATIC ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
+  else()
+    add_library(rauschen SHARED ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
+  endif()
   target_link_libraries(rauschen ${PROTOBUF_LIBRARIES})
   
   set(RAUSCHEN_CLI_TOOLS

@@ -18,7 +18,7 @@ class RauschendConnector
 {
 public:
   RauschendConnector()
-      : socket_()
+      : socket_(), timeout_(1000), polling_interval_(100)
   {
     socket_.run( //std::bind(&RauschendConnector::handleRecv, this) );
         [this](const PApiResponse& cont)
@@ -40,7 +40,7 @@ public:
       awaited_result_.reset( new std::promise<PApiResponse>() );
       socket_.sendProto( cont );
       auto fut = awaited_result_->get_future();
-      if( std::future_status::ready == fut.wait_for(std::chrono::duration<double>(timeout_)) ) {
+      if( std::future_status::ready == fut.wait_for( timeout_ ) ) {
         ret = fut.get();
       }
       awaited_result_.reset( new std::promise<PApiResponse>() );
@@ -51,13 +51,11 @@ public:
   rauschen_message_t* getNextMsg()
   {
     rauschen_message_t* ret = nullptr;
-    auto start = std::chrono::system_clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
-    while ( diff.count() < timeout_ &&
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now() + timeout_;
+    while ( std::chrono::steady_clock::now() < end &&
         !message_queue_.pop( ret ) )
     {
-      std::this_thread::sleep_for(std::chrono::duration<double>(polling_interval_));
-      diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
+      std::this_thread::sleep_for( polling_interval_ );
     }
     return ret;
   }
@@ -105,6 +103,6 @@ protected:
   SocketT socket_;
   boost::lockfree::queue<rauschen_message_t*, boost::lockfree::capacity<128> > message_queue_;
 
-  double timeout_ = 1;
-  double polling_interval_ = 0.1;
+  std::chrono::milliseconds timeout_;
+  std::chrono::milliseconds polling_interval_;
 };
