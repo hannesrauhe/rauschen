@@ -5,18 +5,18 @@ set(RAUSCHEN_BINARIES
 
 install(TARGETS 
   ${RAUSCHEN_BINARIES}
-  DESTINATION bin)
+  DESTINATION bin
+)
 
-if(BUILD_TOOLS)
-  install (TARGETS rauschen
-     ARCHIVE DESTINATION lib
-     LIBRARY DESTINATION lib
-     RUNTIME DESTINATION bin)
+install (TARGETS rauschen rauschen-client
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
      
-  install(FILES ${RAUSCHEN_API_HEADERS}
-    DESTINATION "include"
-  )
-endif()
+install(FILES ${RAUSCHEN_API_HEADERS}
+  DESTINATION "include"
+)
     
 if(MSVC)
   set(CPACK_GENERATOR "NSIS")

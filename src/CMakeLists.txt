@@ -7,8 +7,11 @@ include_directories(
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS message.proto)
 
-set(RAUSCHEND_CPP_FILES
+set(RAUSCHEND_FILES
   daemon/main.cpp
+)
+
+set(RAUSCHEN_SERVER_FILES
   daemon/server.cpp
   daemon/crypto.cpp
   daemon/action.cpp
@@ -17,14 +20,17 @@ set(RAUSCHEND_CPP_FILES
 
 set(RAUSCHEN_API_HEADERS
   api/rauschen.h
+  api/rauschen_server.h
 )
 
-set(RAUSCHEN_API_FILES
+set(RAUSCHEN_CLIENT_API_FILES
   api/rauschen.cpp
 )
 
-add_executable(rauschend ${RAUSCHEND_CPP_FILES} ${PROTO_SRCS})
-target_link_libraries(rauschend ${CRYPTOPP_LIBRARIES} ${PROTOBUF_LIBRARIES})
+set(RAUSCHEN_API_FILES
+  ${RAUSCHEN_CLIENT_API_FILES}
+  api/rauschen_server.cpp
+)
 
 #GENERATE_EXPORT_HEADER( rauschen
 #             BASE_NAME rauschen
@@ -33,14 +39,21 @@ target_link_libraries(rauschend ${CRYPTOPP_LIBRARIES} ${PROTOBUF_LIBRARIES})
 #             STATIC_DEFINE rauschen_BUILT_AS_STATIC
 #)
 
-if(BUILD_TOOLS)
-  if(MSVC)
-    add_library(rauschen STATIC ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
-  else()
-    add_library(rauschen SHARED ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
-  endif()
-  target_link_libraries(rauschen ${PROTOBUF_LIBRARIES})
-  
+
+if(MSVC)
+  add_library(rauschen STATIC ${RAUSCHEN_SERVER_FILES} ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
+  add_library(rauschen-client STATIC ${RAUSCHEN_CLIENT_API_FILES} ${PROTO_SRCS})
+else()
+  add_library(rauschen SHARED ${RAUSCHEN_SERVER_FILES} ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
+  add_library(rauschen-client SHARED ${RAUSCHEN_CLIENT_API_FILES} ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
+endif()
+target_link_libraries(rauschen ${CRYPTOPP_LIBRARIES} ${PROTOBUF_LIBRARIES})
+target_link_libraries(rauschen-client ${PROTOBUF_LIBRARIES})
+
+add_executable(rauschend ${RAUSCHEND_FILES})
+target_link_libraries(rauschend rauschen ${CRYPTOPP_LIBRARIES} ${PROTOBUF_LIBRARIES})
+
+if(BUILD_TOOLS)  
   set(RAUSCHEN_CLI_TOOLS
     rauschen-add-host
     rauschen-send-message
@@ -49,16 +62,16 @@ if(BUILD_TOOLS)
   )
     
   add_executable(rauschen-add-host tools/add_host.c)
-  target_link_libraries(rauschen-add-host rauschen ${PROTOBUF_LIBRARIES})
+  target_link_libraries(rauschen-add-host rauschen-client ${PROTOBUF_LIBRARIES})
 
   add_executable(rauschen-send-message tools/send_message.cpp)
-  target_link_libraries(rauschen-send-message rauschen ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
+  target_link_libraries(rauschen-send-message rauschen-client ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
   add_executable(rauschen-print-messages tools/print_messages.cpp)
-  target_link_libraries(rauschen-print-messages rauschen ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
+  target_link_libraries(rauschen-print-messages rauschen-client ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
   add_executable(rauschen-execute tools/execute.cpp)
-  target_link_libraries(rauschen-execute rauschen ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
+  target_link_libraries(rauschen-execute rauschen-client ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
 endif()
 
 

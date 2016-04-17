@@ -2,7 +2,6 @@
 #include "message_dispatcher.hpp"
 #include "logger.hpp"
 
-#include <csignal>
 #include <ctime>
 #include <iostream>
 #include <string>
@@ -48,28 +47,31 @@ Server::Server()
 
 void Server::run()
 {
-  running = true;
-  std::thread maintenance( [&, this]()
-  {
-    auto last = std::chrono::system_clock::now()-std::chrono::seconds(RAUSCHEN_BROADCAST_INTERVAL);
-    while(running)
-    {
-      std::chrono::duration<double> diff = std::chrono::system_clock::now()-last;
-      if(diff.count()>RAUSCHEN_BROADCAST_INTERVAL)
-      {
-        last = std::chrono::system_clock::now();
-        runMaintenance();
-      }
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-  } );
+	running = true;
+	std::thread maintenance([&, this]()
+	{
+		auto last = std::chrono::system_clock::now() - std::chrono::seconds(RAUSCHEN_BROADCAST_INTERVAL);
+		while (running)
+		{
+			std::chrono::duration<double> diff = std::chrono::system_clock::now() - last;
+			if (diff.count()>RAUSCHEN_BROADCAST_INTERVAL)
+			{
+				last = std::chrono::system_clock::now();
+				runMaintenance();
+			}
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+		}
+	});
 
-  std::signal(SIGINT, [] (int){ Server::getInstance().getIOservice().stop();});
-  std::signal(SIGTERM, [] (int){ Server::getInstance().getIOservice().stop();});
-  io_service_.run();
-  Logger::info("Shutting down");
-  running = false;
-  maintenance.join();
+	io_service_.run();
+	Logger::info("Shutting down");
+	running = false;
+	maintenance.join();
+}
+
+void Server::stop()
+{
+	Server::getInstance().getIOservice().stop();
 }
 
 void Server::runMaintenance()

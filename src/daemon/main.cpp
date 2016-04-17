@@ -1,18 +1,11 @@
-#include "server.hpp"
-#include "message_dispatcher.hpp"
+#include "../api/rauschen_server.h"
+#include <csignal>
 
 int main(int argc, char* argv[]) {
-  {
-    std::ifstream f(RAUSCHEN_KEY_FILE);
-    if(!f.good()) {
-      Crypto::generate(RAUSCHEN_KEY_FILE);
-    }
-  }
+  std::signal(SIGINT, [](int) { rauschen_server_stop(); });
+  std::signal(SIGTERM, [](int) { rauschen_server_stop(); });
 
-  auto& s = Server::getInstance();
+  rauschen_server_run();
 
-  //register pre-defined actions here:
-  //auto dispatcher = s.getDispatcher();
-  s.run();
   return 0;
 }

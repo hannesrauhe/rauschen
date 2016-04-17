@@ -29,6 +29,12 @@ private:
 public:
   void run();
 
+  void stop();
+
+  bool isRunning() {
+	  return running;
+  }
+
   void runMaintenance();
 
   void startReceive();
