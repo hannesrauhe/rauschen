@@ -11,8 +11,9 @@
 #define ASIO_HAS_STD_SHARED_PTR
 #define ASIO_HAS_STD_TYPE_TRAITS
 
-#include <asio.hpp>
+#include <boost/asio.hpp>
 
+namespace asio = boost::asio;
 using ip_t = asio::ip::address_v6;
 const static unsigned RAUSCHEN_MESSAGE_FORMAT_VERSION = 1;
 const static char* RAUSCHEN_HOSTS_FILE = "hosts.txt";

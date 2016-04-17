@@ -41,9 +41,6 @@ if(DEFINED RAUSCHEN_DEP_DIR)
   set(ASIO_ROOT_DIR ${RAUSCHEN_DEP_DIR})
 endif()
 
-find_package(Asio REQUIRED)
-include_directories(${ASIO_INCLUDE_DIR})
-
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
@@ -51,7 +48,7 @@ if(MSVC)
   set(Boost_USE_STATIC_LIBS   ON)
   set( Boost_USE_STATIC_RUNTIME "ON")
 endif()
-find_package(Boost OPTIONAL_COMPONENTS program_options)
+find_package(Boost OPTIONAL_COMPONENTS program_options system date_time regex)
 
 if(Boost_FOUND)
   message(STATUS "Building command line tools")

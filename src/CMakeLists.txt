@@ -47,11 +47,11 @@ else()
   add_library(rauschen SHARED ${RAUSCHEN_SERVER_FILES} ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
   add_library(rauschen-client SHARED ${RAUSCHEN_CLIENT_API_FILES} ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
 endif()
-target_link_libraries(rauschen ${CRYPTOPP_LIBRARIES} ${PROTOBUF_LIBRARIES})
+target_link_libraries(rauschen ${CRYPTOPP_LIBRARIES} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
 target_link_libraries(rauschen-client ${PROTOBUF_LIBRARIES})
 
 add_executable(rauschend ${RAUSCHEND_FILES})
-target_link_libraries(rauschend rauschen ${CRYPTOPP_LIBRARIES} ${PROTOBUF_LIBRARIES})
+target_link_libraries(rauschend rauschen)
 
 if(BUILD_TOOLS)  
   set(RAUSCHEN_CLI_TOOLS
@@ -62,7 +62,7 @@ if(BUILD_TOOLS)
   )
     
   add_executable(rauschen-add-host tools/add_host.c)
-  target_link_libraries(rauschen-add-host rauschen-client ${PROTOBUF_LIBRARIES})
+  target_link_libraries(rauschen-add-host rauschen-client ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
   add_executable(rauschen-send-message tools/send_message.cpp)
   target_link_libraries(rauschen-send-message rauschen-client ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})

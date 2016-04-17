@@ -91,7 +91,7 @@ void Server::runMaintenance()
 
 void Server::startReceive()
 {
-  socket_.async_receive_from( asio::buffer( recv_buffer_ ), remote_endpoint_, [this](const asio::error_code& error,
+  socket_.async_receive_from( asio::buffer( recv_buffer_ ), remote_endpoint_, [this](const boost::system::error_code& error,
       size_t bytes_recvd)
   {
     if (error)
@@ -246,7 +246,7 @@ void Server::sendApiResponse(const PApiResponse& resp, const asio::ip::udp::endp
 {
   Logger::debug("Sending Packet to application on port "+ std::to_string(ep.port()));
   socket_.async_send_to( asio::buffer( resp.SerializeAsString() ), ep,
-      [this](std::error_code /*ec*/, std::size_t /*bytes_sent*/)
+      [this](boost::system::error_code /*ec*/, std::size_t /*bytes_sent*/)
       {
       } );
 }
@@ -255,7 +255,7 @@ void Server::sendMessageToIP( const PEncryptedContainer& message, const asio::ip
 {
   Logger::debug( "Contacting " + ip.to_string() );
   socket_.async_send_to( asio::buffer( message.SerializeAsString() ), asio::ip::udp::endpoint( ip, RAUSCHEN_PORT ),
-      [this](std::error_code /*ec*/, std::size_t /*bytes_sent*/)
+      [this](boost::system::error_code /*ec*/, std::size_t /*bytes_sent*/)
       {
       } );
 }

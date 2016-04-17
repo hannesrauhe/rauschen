@@ -1,10 +1,9 @@
 #pragma once
 
+#include "common.hpp"
 #include "internal_commands.hpp"
 #include "peers.hpp"
 #include "crypto.hpp"
-
-#include <asio.hpp>
 
 using asio::ip::udp;
 

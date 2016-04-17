@@ -51,7 +51,7 @@ protected:
   virtual void startReceiving( std::function<void( const PApiResponse& )> callback )
   {
     socket_.async_receive_from( asio::buffer( recv_buffer_ ), remote_endpoint_,
-        [this, callback](const asio::error_code& error,
+        [this, callback](const boost::system::error_code& error,
             size_t bytes_recvd)
         {
           if (error)
