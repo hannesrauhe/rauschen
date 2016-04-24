@@ -1,3 +1,5 @@
+include(GenerateExportHeader)
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -32,14 +34,6 @@ set(RAUSCHEN_API_FILES
   api/rauschen_server.cpp
 )
 
-#GENERATE_EXPORT_HEADER( rauschen
-#             BASE_NAME rauschen
-#             EXPORT_MACRO_NAME rauschen_EXPORT
-#             EXPORT_FILE_NAME rauschen_Export.h
-#             STATIC_DEFINE rauschen_BUILT_AS_STATIC
-#)
-
-
 if(MSVC)
   add_library(rauschen STATIC ${RAUSCHEN_SERVER_FILES} ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
   add_library(rauschen-client STATIC ${RAUSCHEN_CLIENT_API_FILES} ${PROTO_SRCS})
@@ -47,13 +41,15 @@ else()
   add_library(rauschen SHARED ${RAUSCHEN_SERVER_FILES} ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
   add_library(rauschen-client SHARED ${RAUSCHEN_CLIENT_API_FILES} ${PROTO_SRCS})
 endif()
-target_link_libraries(rauschen ${CRYPTOPP_LIBRARIES} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
-target_link_libraries(rauschen-client ${PROTOBUF_LIBRARIES})
+generate_export_header(rauschen) #for shared library on Windows
+target_link_libraries(rauschen ${CRYPTOPP_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(rauschen-client ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(rauschend ${RAUSCHEND_FILES})
 target_link_libraries(rauschend rauschen)
 
-if(BUILD_TOOLS)  
+if(BUILD_TOOLS) 
+  message(STATUS "Building command line tools")
   set(RAUSCHEN_CLI_TOOLS
     rauschen-add-host
     rauschen-send-message

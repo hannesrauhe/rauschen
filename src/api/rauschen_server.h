@@ -3,8 +3,8 @@
 
 #include "rauschen.h"
 
-rauschen_status rauschen_server_run();
+RAUSCHEN_EXPORT rauschen_status rauschen_server_run();
 
-rauschen_status rauschen_server_stop();
+RAUSCHEN_EXPORT rauschen_status rauschen_server_stop();
 
 #endif //SRC_API_RAUSCHEN_SERVER_H_
