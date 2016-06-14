@@ -48,11 +48,13 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 if(MSVC)
   set(Boost_USE_STATIC_LIBS   ON)
 endif()
-find_package(Boost REQUIRED program_options system date_time regex)
+find_package(Boost REQUIRED program_options system date_time regex python)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS}/lib)
 
-
+find_package(PythonLibs)
+include_directories(${PYTHON_INCLUDE_DIRS})
+link_directories(${PYTHON_LIBRARIES})
 find_package(CryptoPP REQUIRED)
 
 # Output directory

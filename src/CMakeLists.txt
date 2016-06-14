@@ -34,16 +34,15 @@ set(RAUSCHEN_API_FILES
   api/rauschen_server.cpp
 )
 
-if(MSVC)
-  add_library(rauschen STATIC ${RAUSCHEN_SERVER_FILES} ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
-  add_library(rauschen-client STATIC ${RAUSCHEN_CLIENT_API_FILES} ${PROTO_SRCS})
-else()
-  add_library(rauschen SHARED ${RAUSCHEN_SERVER_FILES} ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
-  add_library(rauschen-client SHARED ${RAUSCHEN_CLIENT_API_FILES} ${PROTO_SRCS})
-endif()
+add_library(rauschen SHARED ${RAUSCHEN_SERVER_FILES} ${RAUSCHEN_API_FILES} ${PROTO_SRCS})
+add_library(rauschen-client SHARED ${RAUSCHEN_CLIENT_API_FILES} ${PROTO_SRCS})
+add_library(rauschen-python SHARED api/rauschen_python.cpp ${RAUSCHEN_CLIENT_API_FILES} ${PROTO_SRCS})
+
 generate_export_header(rauschen) #for shared library on Windows
 target_link_libraries(rauschen ${CRYPTOPP_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
 target_link_libraries(rauschen-client ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(rauschen-python ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES})
+set_target_properties(rauschen-python PROPERTIES SUFFIX ".pyd")
 
 add_executable(rauschend ${RAUSCHEND_FILES})
 target_link_libraries(rauschend rauschen)
