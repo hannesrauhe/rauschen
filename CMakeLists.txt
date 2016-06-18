@@ -55,6 +55,11 @@ link_directories(${Boost_LIBRARY_DIRS}/lib)
 
 find_package(CryptoPP REQUIRED)
 
+find_package(GTest)
+#if(GTEST_FOUND)
+#  set(BUILD_TESTS 1)
+#endif()
+
 # Output directory
 set(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})

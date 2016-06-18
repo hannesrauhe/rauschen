@@ -76,5 +76,6 @@ include(install.cmake)
 
 ##### build tests #####
 if(BUILD_TESTS)
+  message(STATUS "Building tests")
   add_subdirectory(test)
 endif()

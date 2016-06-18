@@ -7,6 +7,9 @@ set(RAUSCHEND_TEST_FILES
     ../daemon/api_actions.cpp
     ../daemon/crypto.cpp
 )
+
+set_source_files_properties(${PROTO_SRCS} PROPERTIES GENERATED TRUE)
+
 add_executable(test_rauschend ${RAUSCHEND_TEST_FILES} ${PROTO_SRCS})
 target_link_libraries(test_rauschend cryptopp gtest asan ${PROTOBUF_LIBRARIES})
   
