@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "config.hpp"
 #include "internal_commands.hpp"
 #include "peers.hpp"
 #include "crypto.hpp"

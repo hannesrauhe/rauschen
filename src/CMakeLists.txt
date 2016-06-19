@@ -15,6 +15,7 @@ set(RAUSCHEND_FILES
 
 set(RAUSCHEN_SERVER_FILES
   daemon/server.cpp
+  daemon/config.cpp
   daemon/crypto.cpp
   daemon/action.cpp
   daemon/api_actions.cpp
@@ -68,6 +69,9 @@ if(BUILD_TOOLS)
 
   add_executable(rauschen-execute tools/execute.cpp)
   target_link_libraries(rauschen-execute rauschen-client ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
+
+  add_executable(lunchinator-cli tools/lunchinator-cli/main.cpp)
+  target_link_libraries(lunchinator-cli rauschen-client rauschen ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
 endif()
 
 

@@ -48,7 +48,7 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 if(MSVC)
   set(Boost_USE_STATIC_LIBS   ON)
 endif()
-find_package(Boost REQUIRED program_options system date_time regex)
+find_package(Boost REQUIRED program_options system date_time regex filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS}/lib)
 

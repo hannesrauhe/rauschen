@@ -4,9 +4,9 @@
 
 rauschen_status rauschen_server_run() {
   {
-    std::ifstream f(RAUSCHEN_KEY_FILE);
+    std::ifstream f(rauschen_config.getKeyFile());
     if (!f.good()) {
-      Crypto::generate(RAUSCHEN_KEY_FILE);
+      Crypto::generate(rauschen_config.getKeyFile());
     }
   }
 

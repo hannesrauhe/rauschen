@@ -41,10 +41,14 @@ rauschen_handle_t* rauschen_register_message_handler( const char* message_type )
   send_cont.set_mtype(message_type);
   auto ret = connector.sendCommandToDaemon(MTYPE_CMD_REGISTER_HANDLER, send_cont.SerializeAsString());
 
-  assert(ret.has_handle());
-  auto r = new rauschen_handle_t();
-  r->num = ret.handle();
-  return r;
+  if(ret.status() == RAUSCHEN_STATUS_OK)
+  {
+    assert(ret.has_handle());
+    auto r = new rauschen_handle_t();
+    r->num = ret.handle();
+    return r;
+  }
+  return nullptr;
 }
 
 rauschen_message_t* rauschen_get_next_message( const rauschen_handle_t* handle, int block )

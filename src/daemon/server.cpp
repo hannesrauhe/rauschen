@@ -11,7 +11,7 @@
 
 Server::Server()
     : socket_( io_service_ ),
-      crypto_( RAUSCHEN_KEY_FILE )
+      crypto_( rauschen_config.getKeyFile() )
 {
 // Create the socket so that multiple may be bound to the same address.
   asio::ip::udp::endpoint listen_endpoint( udp::v6(), RAUSCHEN_PORT );
@@ -151,7 +151,7 @@ void Server::startReceive()
 
 void Server::pingHostsFromHostsFile()
 {
-  std::ifstream ip_f( RAUSCHEN_HOSTS_FILE );
+  std::ifstream ip_f( rauschen_config.getHostsFile() );
   if ( !ip_f.good() )
   {
     Logger::debug( "Cannot open hosts file - no previously known hosts to contact." );

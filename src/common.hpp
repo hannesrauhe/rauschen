@@ -17,40 +17,9 @@
 namespace asio = boost::asio;
 using ip_t = asio::ip::address_v6;
 const static unsigned RAUSCHEN_MESSAGE_FORMAT_VERSION = 1;
-const static char* RAUSCHEN_HOSTS_FILE = "hosts.txt";
 const static int RAUSCHEN_MAX_PACKET_SIZE = 8192;
 
 const static unsigned RAUSCHEN_PORT = 2442;
 const static unsigned RAUSCHEN_BROADCAST_INTERVAL = 60;
 
 const static char* RAUSCHEN_MULTICAST_ADDR = "FF05::DB8:80:4213";
-const static char* RAUSCHEN_KEY_FILE = "key";
-
-boost::filesystem::path get_home_dir()
-{
-  boost::filesystem::path res;
-
-  // if HOME is set, use HOME
-  char *home = getenv("HOME");
-  if ( home )
-  {
-    res = home;
-  }
-  else
-  {
-    // if HOME is not set, try HOMEDRIVE + HOMEPATH
-    char *home_drive = getenv("HOMEDRIVE");
-    char *home_path = getenv("HOMEPATH");
-    if ( home_drive && home_path )
-    {
-      res = home_drive;
-      res /= getenv("HOMEPATH");
-    }
-  }
-  return res;
-}
-
-std::string get_default_rauschen_dir()
-{
-  return (get_home_dir() / ".rauschen").string();
-}

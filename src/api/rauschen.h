@@ -8,20 +8,20 @@
 
 #include "rauschen_export.h"
 
-RAUSCHEN_EXPORT typedef enum {
+typedef enum {
   RAUSCHEN_STATUS_INVALID_ARG = -2,
   RAUSCHEN_STATUS_TIMEOUT = -1,
   RAUSCHEN_STATUS_OK = 0,
   RAUSCHEN_STATUS_ERR = 1,
 } rauschen_status;
 
-RAUSCHEN_EXPORT typedef struct {
+typedef struct {
   const char* text;
   const char* sender;
   const char* type;
 } rauschen_message_t;
 
-RAUSCHEN_EXPORT typedef struct {
+typedef struct {
   int num;
 } rauschen_handle_t;
 
